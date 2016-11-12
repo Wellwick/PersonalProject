@@ -4,9 +4,9 @@ public class Prob {
     float conditionalProbability; //premise of this class is probability is B|A
     
     public Prob(Event b, Event a, float prob) { // Prob(B, A, FLOAT)
-	A = a;
-	B = b;
-	conditionalProbability = prob;
+    	A = a;
+    	B = b;
+    	conditionalProbability = prob;
     }
     
     public Event getEvent() { return B; }

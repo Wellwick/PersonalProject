@@ -5,11 +5,11 @@ public class Event {
     
     //constructor for event with no prior probability
     public Event(String n) { name = n; }
-    //constructor for event with prior probability
-    public Event(String n, float prob) {
-	name = n;
-	probability = prob;
-	hasPrior = true;
+        //constructor for event with prior probability
+        public Event(String n, float prob) {
+    	name = n;
+    	probability = prob;
+    	hasPrior = true;
     }
     
     public String getName() { return name; }
