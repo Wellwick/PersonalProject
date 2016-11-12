@@ -72,8 +72,10 @@ public class Network {
 				    Event counterA = probabilities[i].getConditional().not();
 				    for (int j=i+1; j<probabilities.length; j++) {
 				    	if (probabilities[j].getConditional().equals(counterA)) {
-							return probabilities[i].getProb() * calculateProbability(probabilities[i].getConditional())
-								+  probabilities[j].getProb() * calculateProbability(probabilities[j].getConditional());
+							return (probabilities[i].getProb() 
+								* calculateProbability(probabilities[i].getConditional()))
+								+  (probabilities[j].getProb() 
+								* calculateProbability(probabilities[j].getConditional()));
 				    	}
 				    }
 				}
@@ -84,7 +86,14 @@ public class Network {
     }
     
     public void findProbability() {
-		System.out.println("The probability of " + events[3].getName() + " is " + calculateProbability(events[3]));
+    	int searchedProbability = 3;
+    	float prob = calculateProbability(events[searchedProbability]);
+    	if (prob == -1) {
+    		System.out.println("Probability incalculable");
+    	} else {
+			System.out.println("The probability of " + events[3].getName() 
+				+ " is " + calculateProbability(events[3]));
+		}
     }
 
 
