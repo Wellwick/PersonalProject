@@ -18,18 +18,19 @@ public class Network {
 		    letter++;
 		}
 		System.out.println("The last event is labelled as " + events[9].getName());
-		probabilities = new Prob[11];
+		probabilities = new Prob[12];
 		probabilities[0] = new Prob(events[3], events[0], 0.4f);
-		probabilities[1] = new Prob(events[4], events[1], 0.9f);
-		probabilities[2] = new Prob(events[4], events[2], 0.5f);
-		probabilities[3] = new Prob(events[5], events[4], 0.9f);
-		probabilities[4] = new Prob(events[6], events[4], 0.7f);
-		probabilities[5] = new Prob(events[7], events[5], 0.1f);
-		probabilities[6] = new Prob(events[8], events[5], 0.4f);
-		probabilities[7] = new Prob(events[8], events[6], 0.3f);
-		probabilities[8] = new Prob(events[8], events[7], 0.8f);
-		probabilities[9] = new Prob(events[9], events[7], 0.75f);
-		probabilities[10] = new Prob(events[9], events[8], 0.5f);
+		probabilities[1] = new Prob(events[3], events[0].not(), 0.7f);
+		probabilities[2] = new Prob(events[4], events[1], 0.9f);
+		probabilities[3] = new Prob(events[4], events[2], 0.5f);
+		probabilities[4] = new Prob(events[5], events[4], 0.9f);
+		probabilities[5] = new Prob(events[6], events[4], 0.7f);
+		probabilities[6] = new Prob(events[7], events[5], 0.1f);
+		probabilities[7] = new Prob(events[8], events[5], 0.4f);
+		probabilities[8] = new Prob(events[8], events[6], 0.3f);
+		probabilities[9] = new Prob(events[8], events[7], 0.8f);
+		probabilities[10] = new Prob(events[9], events[7], 0.75f);
+		probabilities[11] = new Prob(events[9], events[8], 0.5f);
     }
     
     public static void main(String[] args) {
@@ -59,16 +60,23 @@ public class Network {
     private float calculateProbability(Event A) {
 		//can only make use of prior probabilities
 		//check if A has a prior probability
-		if (A.hasPrior())
+		if (A.hasPrior()) {
 		    return A.getProb();
-		else {
+		} else {
 		    //this means we need to look through the conditional probability table
 		    for (int i=0; i<probabilities.length; i++) {
-			if (probabilities[i].getEvent().equals(A)) {
-			    //must calculate this
-			    System.out.println("Found one");
-			    return probabilities[i].getProb() * calculateProbability(probabilities[i].getConditional());
-			}
+				if (probabilities[i].getEvent().equals(A)) {
+				    //must calculate this
+				    System.out.println("Searching for P(" + probabilities[i].getEvent().getName() + "|!" + 
+						probabilities[i].getConditional().getName() + ")");
+				    Event counterA = probabilities[i].getConditional().not();
+				    for (int j=i+1; j<probabilities.length; j++) {
+				    	if (probabilities[j].getConditional().equals(counterA)) {
+							return probabilities[i].getProb() * calculateProbability(probabilities[i].getConditional())
+								+  probabilities[j].getProb() * calculateProbability(probabilities[j].getConditional());
+				    	}
+				    }
+				}
 		    }
 		    
 		}
@@ -76,6 +84,8 @@ public class Network {
     }
     
     public void findProbability() {
-		System.out.println("The probability of " + events[6].getName() + " is " + calculateProbability(events[6]));
+		System.out.println("The probability of " + events[3].getName() + " is " + calculateProbability(events[3]));
     }
+
+
 }
