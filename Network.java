@@ -20,9 +20,9 @@ public class Network {
 		System.out.println("The last event is labelled as " + events[9].getName());
 		probabilities = new Prob[12];
 		probabilities[0] = new Prob(events[3], events[0], 0.4f);
-		probabilities[1] = new Prob(events[3], events[0].not(), 0.7f);
-		probabilities[2] = new Prob(events[4], events[1], 0.9f);
-		probabilities[3] = new Prob(events[4], events[2], 0.5f);
+		probabilities[1] = new Prob(events[4], events[1], 0.9f);
+		probabilities[2] = new Prob(events[4], events[2], 0.5f);
+		probabilities[3] = new Prob(events[4], events[2].not(), 0.7f);
 		probabilities[4] = new Prob(events[5], events[4], 0.9f);
 		probabilities[5] = new Prob(events[6], events[4], 0.7f);
 		probabilities[6] = new Prob(events[7], events[5], 0.1f);
@@ -37,7 +37,8 @@ public class Network {
 		//let's create a network for demonstration reasons
 		Network net = new Network();
 		net.showConnections();
-		net.findProbability();
+		net.findProbability(3);
+		net.findProbability(4);
 		
     }
     
@@ -71,7 +72,8 @@ public class Network {
 						probabilities[i].getConditional().getName() + ")");
 				    Event counterA = probabilities[i].getConditional().not();
 				    for (int j=i+1; j<probabilities.length; j++) {
-				    	if (probabilities[j].getConditional().equals(counterA)) {
+				    	if (probabilities[j].getConditional().equals(counterA)
+				    			&& probabilities[i].getEvent().equals(A)) {
 							return (probabilities[i].getProb() 
 								* calculateProbability(probabilities[i].getConditional()))
 								+  (probabilities[j].getProb() 
@@ -85,14 +87,14 @@ public class Network {
 		return -1;
     }
     
-    public void findProbability() {
-    	int searchedProbability = 3;
-    	float prob = calculateProbability(events[searchedProbability]);
+    public void findProbability(int eventToCheck) {
+    	System.out.println("Calculating probability for " + events[eventToCheck].getName());
+    	float prob = calculateProbability(events[eventToCheck]);
     	if (prob == -1) {
     		System.out.println("Probability incalculable");
     	} else {
-			System.out.println("The probability of " + events[3].getName() 
-				+ " is " + calculateProbability(events[3]));
+			System.out.println("The probability of " + events[eventToCheck].getName() 
+				+ " is " + prob);
 		}
     }
 
