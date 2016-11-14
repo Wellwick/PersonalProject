@@ -18,7 +18,7 @@ public class Network {
 		    letter++;
 		}
 		System.out.println("The last event is labelled as " + events[9].getName());
-		probabilities = new Prob[12];
+		probabilities = new Prob[13];
 		probabilities[0] = new Prob(events[3], events[0], 0.4f);
 		probabilities[1] = new Prob(events[4], events[1], 0.9f);
 		probabilities[2] = new Prob(events[4], events[2], 0.5f);
@@ -31,6 +31,7 @@ public class Network {
 		probabilities[9] = new Prob(events[8], events[7], 0.8f);
 		probabilities[10] = new Prob(events[9], events[7], 0.75f);
 		probabilities[11] = new Prob(events[9], events[8], 0.5f);
+		probabilities[12] = new Prob(events[6], events[4].not(), 0.3f);
     }
     
     public static void main(String[] args) {
@@ -38,6 +39,7 @@ public class Network {
 		Network net = new Network();
 		net.showConnections();
 		net.findProbability(3);
+		net.findProbability(6);
 		net.findProbability(4);
 		
     }
@@ -74,10 +76,11 @@ public class Network {
 				    for (int j=i+1; j<probabilities.length; j++) {
 				    	if (probabilities[j].getConditional().equals(counterA)
 				    			&& probabilities[i].getEvent().equals(A)) {
-							return (probabilities[i].getProb() 
+							A.setProb((probabilities[i].getProb() 
 								* calculateProbability(probabilities[i].getConditional()))
 								+  (probabilities[j].getProb() 
-								* calculateProbability(probabilities[j].getConditional()));
+								* calculateProbability(probabilities[j].getConditional())), true);
+							return A.getProb();
 				    	}
 				    }
 				}

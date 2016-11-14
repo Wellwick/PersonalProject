@@ -25,8 +25,8 @@ public class Event {
             System.out.println(name + " can not have a probability outside of [0-1]");
         } else {
             name = n;
-        	probability = prob;
-        	hasPrior = true;
+	    probability = prob;
+	    hasPrior = true;
             negation = new Event("!"+n, 1.0f-prob, this); //needs a different
         }
     }
@@ -37,6 +37,14 @@ public class Event {
         probability = prob;
         hasPrior = true;
         negation = neg;
+    }
+    
+    //setting the probability for 
+    public void setProb(float prob, boolean needsNegation) {
+	hasPrior = true;
+	probability = prob;
+	if (needsNegation)
+	    negation.setProb(1.0f-prob, false);
     }
     
     public String getName() { return name; }
