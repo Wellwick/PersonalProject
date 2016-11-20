@@ -1,23 +1,32 @@
+import java.util.LinkedList;
+import java.util.Map;
+
 public class Network {
     //this class contains a network of Events linked by Probs
-    Event[] events;
-    Prob[] probabilities;
+    LinkedList<Event> events;
+    //in order to better traverse graph, construct probabilities in adjacency list
+    Map<Event, LinkedList<Prob>> probabilities;
+    Prob[] probs;
     
     public Network() {
-		//generate 10 events
-		events = new Event[10];
+		//generate events
+		events = new LinkedList<Event>();
+		//must assign into probabilities at the same time
+		probabilities = new Map<Event, LinkedList<Prob>>();
 		byte letter = (byte)'A';
-		events[0] = new Event((char)letter+"", 0.7f);
+		events.add(new Event((char)letter+"", 0.7f));
 		letter++;
-		events[1] = new Event((char)letter+"", 0.3f);
+		events.add(new Event((char)letter+"", 0.3f));
 		letter++;
-		events[2] = new Event((char)letter+"", 0.25f);
+		events.add(new Event((char)letter+"", 0.25f));
 		letter++;
 		for (int i=3; i<events.length; i++) {
-		    events[i] = new Event((char)letter+"");
+		    events.add(new Event((char)letter+"");
 		    letter++;
 		}
-		System.out.println("The last event is labelled as " + events[9].getName());
+		System.out.println("The last event is labelled as " + events.getLast().getName());
+
+		/*
 		probabilities = new Prob[13];
 		probabilities[0] = new Prob(events[3], events[0], 0.4f);
 		probabilities[1] = new Prob(events[4], events[1], 0.9f);
@@ -32,6 +41,7 @@ public class Network {
 		probabilities[10] = new Prob(events[9], events[7], 0.75f);
 		probabilities[11] = new Prob(events[9], events[8], 0.5f);
 		probabilities[12] = new Prob(events[6], events[4].not(), 0.3f);
+		*/
     }
     
     public static void main(String[] args) {
@@ -90,16 +100,30 @@ public class Network {
 		return -1;
     }
     
-    public void findProbability(int eventToCheck) {
-    	System.out.println("Calculating probability for " + events[eventToCheck].getName());
-    	float prob = calculateProbability(events[eventToCheck]);
+    public void findProbability(String eventName) {
+    	Event event = events.findEvent(eventName);
+    	System.out.println("Calculating probability for " + event.getName());
+    	float prob = calculateProbability(event);
     	if (prob == -1) {
     		System.out.println("Probability incalculable");
     	} else {
-			System.out.println("The probability of " + events[eventToCheck].getName() 
+			System.out.println("The probability of " + event.getName() 
 				+ " is " + prob);
 		}
     }
 
+    private Event findEvent(String name) {
+    	//traverses event list to find the event
+    	ListIterator iterator = events.getIterator();
+    	while (iterator.hasNext()) {
+    		Event A = iterator.next();
+    		if (A.getName().equals(name))
+    			return A;
+    	}
+
+    	//if we complete the iterator and can't find the event, we don't have it
+    	System.err.println("Couldn't find event " + name);
+    	return null;
+    }
 
 }
