@@ -1,63 +1,75 @@
 import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Set;
 
 public class Network {
     //this class contains a network of Events linked by Probs
-    LinkedList<Event> events;
     //in order to better traverse graph, construct probabilities in adjacency list
-    Map<Event, LinkedList<Prob>> probabilities;
+    HashMap<Event, LinkedList<Prob>> probabilities;
     Prob[] probs;
     
     public Network() {
 		//generate events
-		events = new LinkedList<Event>();
 		//must assign into probabilities at the same time
-		probabilities = new Map<Event, LinkedList<Prob>>();
+		probabilities = new HashMap<Event, LinkedList<Prob>>();
 		byte letter = (byte)'A';
-		events.add(new Event((char)letter+"", 0.7f));
+		addEvent(new Event((char)letter+"", 0.7f));
 		letter++;
-		events.add(new Event((char)letter+"", 0.3f));
+		addEvent(new Event((char)letter+"", 0.3f));
 		letter++;
-		events.add(new Event((char)letter+"", 0.25f));
+		addEvent(new Event((char)letter+"", 0.25f));
 		letter++;
-		for (int i=3; i<events.length; i++) {
-		    events.add(new Event((char)letter+"");
+		for (int i=3; i<11; i++) {
+		    addEvent(new Event((char)letter+""));
 		    letter++;
 		}
-		System.out.println("The last event is labelled as " + events.getLast().getName());
+		//check the last event
+		System.out.println("The last event is labelled as " + getLast().getName());
 
-		/*
-		probabilities = new Prob[13];
-		probabilities[0] = new Prob(events[3], events[0], 0.4f);
-		probabilities[1] = new Prob(events[4], events[1], 0.9f);
-		probabilities[2] = new Prob(events[4], events[2], 0.5f);
-		probabilities[3] = new Prob(events[4], events[2].not(), 0.7f);
-		probabilities[4] = new Prob(events[5], events[4], 0.9f);
-		probabilities[5] = new Prob(events[6], events[4], 0.7f);
-		probabilities[6] = new Prob(events[7], events[5], 0.1f);
-		probabilities[7] = new Prob(events[8], events[5], 0.4f);
-		probabilities[8] = new Prob(events[8], events[6], 0.3f);
-		probabilities[9] = new Prob(events[8], events[7], 0.8f);
-		probabilities[10] = new Prob(events[9], events[7], 0.75f);
-		probabilities[11] = new Prob(events[9], events[8], 0.5f);
-		probabilities[12] = new Prob(events[6], events[4].not(), 0.3f);
-		*/
+		//put in the probabilities
+		addConditionalProbability("D", "A", 0.4f);
+		addConditionalProbability("E", "B", 0.9f);
+		addConditionalProbability("E", "C", 0.5f);
+		addConditionalProbability("E", "!C", 0.7f);
+		addConditionalProbability("F", "E", 0.9f);
+		addConditionalProbability("G", "E", 0.7f);
+		addConditionalProbability("H", "F", 0.1f);
+		addConditionalProbability("I", "F", 0.4f);
+		addConditionalProbability("I", "G", 0.3f);
+		addConditionalProbability("I", "H", 0.8f);
+		addConditionalProbability("J", "H", 0.75f);
+		addConditionalProbability("J", "I", 0.5f);
+		addConditionalProbability("G", "!E", 0.3f);
     }
     
     public static void main(String[] args) {
 		//let's create a network for demonstration reasons
 		Network net = new Network();
+		if (net.findEvent("J") != null)
+			System.out.println("Found event J");
 		net.showConnections();
-		net.findProbability(3);
-		net.findProbability(6);
-		net.findProbability(4);
+		net.findProbability("D");
+		net.findProbability("G");
+		net.findProbability("E");
 		
     }
-    
+
     public void showConnections() {
-		for (int i=0; i<probabilities.length; i++) {
-		    System.out.println("P(" + probabilities[i].getEvent().getName() + "|" + 
-			probabilities[i].getConditional().getName() + ") = " + probabilities[i].getProb());
+		Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<Event, LinkedList<Prob>> event = iterator.next(); {
+				if (event.getValue() != null) {
+					Iterator<Prob> iter = event.getValue().descendingIterator();
+					while (iter.hasNext()) {
+						Prob p = iter.next();
+						System.out.println("P(" + p.getEvent().getName() + "|" +
+							p.getConditional().getName() + ") = " + p.getProb());
+					}
+				}
+			}
 		}
     }
     
@@ -77,6 +89,11 @@ public class Network {
 		    return A.getProb();
 		} else {
 		    //this means we need to look through the conditional probability table
+		    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+		    while (iterator.hasNext()) {
+
+		    }
+		    /*
 		    for (int i=0; i<probabilities.length; i++) {
 				if (probabilities[i].getEvent().equals(A)) {
 				    //must calculate this
@@ -95,13 +112,14 @@ public class Network {
 				    }
 				}
 		    }
+		    */
 		    
 		}
 		return -1;
     }
     
     public void findProbability(String eventName) {
-    	Event event = events.findEvent(eventName);
+    	Event event = findEvent(eventName);
     	System.out.println("Calculating probability for " + event.getName());
     	float prob = calculateProbability(event);
     	if (prob == -1) {
@@ -112,13 +130,44 @@ public class Network {
 		}
     }
 
+    private void addEvent(Event e) {
+    	probabilities.put(e, new LinkedList<Prob>());
+    }
+
+    private void addConditionalProbability(String B, String A, float prob) {
+    	//stored in hashmap under B
+    	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+    	while (iterator.hasNext()) {
+    		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+    		if (entry.getKey().getName().equals(B) || entry.getKey().not().getName().equals(B)) {
+    			//can add the probability here
+    			//need to find the other event first
+    			Iterator<Map.Entry<Event, LinkedList<Prob>>> iter = probabilities.entrySet().iterator();
+    			while (iter.hasNext()) {
+    				Event e = iter.next().getKey();
+    				if (e.getName().equals(A)) {
+    					entry.getValue().add(new Prob(entry.getKey(), e, prob));
+    				} else if (e.not().getName().equals(A)) {
+    					entry.getValue().add(new Prob(entry.getKey(), e.not(), prob));
+    				}
+    			}
+    			//if we reach here, means that event A doesn't exist
+    			System.err.println("Event " + A + " doesn't exist at all");
+    		}
+    	}
+    	//finishing the iterator means we didn't find event B
+		System.err.println("Event " + B + " doesn't exist");
+    }
+
     private Event findEvent(String name) {
     	//traverses event list to find the event
-    	ListIterator iterator = events.getIterator();
+    	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
     	while (iterator.hasNext()) {
-    		Event A = iterator.next();
+    		Event A = iterator.next().getKey();
     		if (A.getName().equals(name))
     			return A;
+    		else if (A.not().getName().equals(name))
+    			return A.not();
     	}
 
     	//if we complete the iterator and can't find the event, we don't have it
@@ -126,4 +175,13 @@ public class Network {
     	return null;
     }
 
+    //iterate through the hashmap and find the last added event
+    private Event getLast() {
+    	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+    	Event e = new Event("<NO EVENTS>");
+    	while (iterator.hasNext()) {
+    		e = iterator.next().getKey();
+    	}
+    	return e;
+    }
 }
