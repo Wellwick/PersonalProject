@@ -107,12 +107,10 @@ public class Network {
 		    				Prob prob2 = iter2.next();
 		    				Event X = prob2.getConditional();
 		    				if (X.equals(counterA)) {
-		    					Event condition = findEvent(A.getName());
 		    					//must calculate conditons probability
-		    					float prob = calculateProbability(condition);
+		    					float prob = calculateProbability(A);
 		    					if (prob == -1) { //just in case we are dealing with a !NOT event
-		    						condition = findEvent(A.not().getName());
-		    						prob = calculateProbability(condition);
+		    						prob = calculateProbability(A.not());
 			    					B.setProb((prob1.getProb() * (1.0f - prob))
 			    						+ (prob2.getProb() * prob), true);
 		    					} else {
@@ -159,16 +157,19 @@ public class Network {
     				Event e = iter.next().getKey();
     				if (e.getName().equals(A)) {
     					entry.getValue().add(new Prob(entry.getKey(), e, prob));
+    					return;
     				} else if (e.not().getName().equals(A)) {
     					entry.getValue().add(new Prob(entry.getKey(), e.not(), prob));
+    					return;
     				}
     			}
     			//if we reach here, means that event A doesn't exist
-    			//System.err.println("Event " + A + " doesn't exist at all");
+    			System.err.println("Event '" + A + "' doesn't exist");
+    			return;
     		}
     	}
     	//finishing the iterator means we didn't find event B
-		//System.err.println("Event " + B + " doesn't exist");
+		System.err.println("Event '" + B + "' doesn't exist");
     }
 
     private Event findEvent(String name) {
