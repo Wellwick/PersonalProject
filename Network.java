@@ -9,7 +9,6 @@ public class Network {
     //this class contains a network of Events linked by Probs
     //in order to better traverse graph, construct probabilities in adjacency list
     HashMap<Event, LinkedList<Prob>> probabilities;
-    Prob[] probs;
     
     public Network() {
 		//generate events
