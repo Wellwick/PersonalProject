@@ -48,8 +48,6 @@ public class Network {
     public static void main(String[] args) {
 		//let's create a network for demonstration reasons
 		Network net = new Network();
-		if (net.findEvent("J") != null)
-			System.out.println("Found event J");
 		net.showConnections();
 		net.findProbability("D");
 		net.findProbability("G");
@@ -82,37 +80,51 @@ public class Network {
     }
     
     //calculate P(A)
-    private float calculateProbability(Event A) {
+    private float calculateProbability(Event B) {
 		//can only make use of prior probabilities
 		//check if A has a prior probability
-		if (A.hasPrior()) {
-		    return A.getProb();
+		if (B.hasPrior()) {
+		    return B.getProb();
+		} else if (B.not().hasPrior()) {
+			return B.not().getProb();
 		} else {
 		    //this means we need to look through the conditional probability table
 		    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 		    while (iterator.hasNext()) {
-
+		    	//looking for B, where is it stored
+		    	Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		    	if (entry.getKey().equals(B)) {
+		    		Iterator<Prob> iter = entry.getValue().descendingIterator();
+		    		while (iter.hasNext()) {
+		    			//we must search for the reflex
+		    			Prob prob1 = iter.next();
+		    			Event A = prob1.getConditional();
+		    			Event counterA = A.not();
+		    			System.out.println("Searching for P(" + B.getName() + "|" + 
+									counterA.getName() + ")");
+		    			Iterator<Prob> iter2 = iter;
+		    			while (iter2.hasNext()) {
+		    				Prob prob2 = iter2.next();
+		    				Event X = prob2.getConditional();
+		    				if (X.equals(counterA)) {
+		    					Event condition = findEvent(A.getName());
+		    					//must calculate conditons probability
+		    					float prob = calculateProbability(condition);
+		    					if (prob == -1) { //just in case we are dealing with a !NOT event
+		    						condition = findEvent(A.not().getName());
+		    						prob = calculateProbability(condition);
+			    					B.setProb((prob1.getProb() * (1.0f - prob))
+			    						+ (prob2.getProb() * prob), true);
+		    					} else {
+		    						B.setProb((prob1.getProb() * prob)
+		    							+ (prob2.getProb() * (1.0f - prob)), true);
+		    					}
+		    					return B.getProb();
+		    				}
+		    			}
+		    		}
+		    	}
 		    }
-		    /*
-		    for (int i=0; i<probabilities.length; i++) {
-				if (probabilities[i].getEvent().equals(A)) {
-				    //must calculate this
-				    System.out.println("Searching for P(" + probabilities[i].getEvent().getName() + "|!" + 
-						probabilities[i].getConditional().getName() + ")");
-				    Event counterA = probabilities[i].getConditional().not();
-				    for (int j=i+1; j<probabilities.length; j++) {
-				    	if (probabilities[j].getConditional().equals(counterA)
-				    			&& probabilities[i].getEvent().equals(A)) {
-							A.setProb((probabilities[i].getProb() 
-								* calculateProbability(probabilities[i].getConditional()))
-								+  (probabilities[j].getProb() 
-								* calculateProbability(probabilities[j].getConditional())), true);
-							return A.getProb();
-				    	}
-				    }
-				}
-		    }
-		    */
 		    
 		}
 		return -1;
@@ -152,11 +164,11 @@ public class Network {
     				}
     			}
     			//if we reach here, means that event A doesn't exist
-    			System.err.println("Event " + A + " doesn't exist at all");
+    			//System.err.println("Event " + A + " doesn't exist at all");
     		}
     	}
     	//finishing the iterator means we didn't find event B
-		System.err.println("Event " + B + " doesn't exist");
+		//System.err.println("Event " + B + " doesn't exist");
     }
 
     private Event findEvent(String name) {
