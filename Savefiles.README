@@ -1,0 +1,20 @@
+A save file must first specify a collection of events that are in the system
+This is done through writing the event name with an equals if it has a prior probability
+as such
+
+A=0.7
+
+Then to seperate out each event we use the / character
+
+A=0.7/B=0.3/C=0.25/D/E/F/G/H/I/J
+
+Since it is possible for some special characters to be a part of the event name, \ will
+be used as a way to escape characters which may be recognised (including \ itself)
+
+When the event names are specified, # character is used to seperate out for conditional
+probabilities to begin being saved. Each conditional probability is written as A|B=X 
+where X is the probability
+
+A=0.7/B=0.3/C=0.25/D/E/F/G/H/I/J#D|A=0.4/E|B=0.9/E|C=0.5/E|!C=0.7/J|I=0.5/J|H=0.75/H|F=0.1/G|!E=0.3/G|E=0.7/I|H=0.8/I|G=0.3/I|F=0.4/F|E=0.9
+
+This means no spaces or new lines except from when it is part of the name of an event             

@@ -11,6 +11,11 @@ public class Network {
     HashMap<Event, LinkedList<Prob>> probabilities;
     
     public Network() {
+		//means we are started with a empty network
+		probabilites = new HashMap<Event, LinkedList<Prob>>();
+    }
+    
+    public Network(String filename) {
 		//generate events
 		//must assign into probabilities at the same time
 		probabilities = new HashMap<Event, LinkedList<Prob>>();
@@ -45,13 +50,17 @@ public class Network {
     }
     
     public static void main(String[] args) {
-		//let's create a network for demonstration reasons
-		Network net = new Network();
-		net.showConnections();
-		net.findProbability("D");
-		net.findProbability("G");
-		net.findProbability("E");
-		
+		if (args[0] != null && args[0].equals("-n") {
+			//allow user to create a new thing
+			Network net = new Network();
+		} else {
+			//let's create a network for demonstration reasons
+			Network net = new Network("DEFAULT.bys");
+			net.showConnections();
+			net.findProbability("D");
+			net.findProbability("G");
+			net.findProbability("E");
+		}
     }
 
     public void showConnections() {
