@@ -1,4 +1,4 @@
-import java.io.InputStream;
+import java.io.FileInputStream;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public class Network {
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
 	//read in from the file
-	InputStream is = new InputStream(new File(filename));
+	FileInputStream is = new FileInputStream(new File(filename));
 	
 	//initially have to read in the Event names
 	boolean events = true;
@@ -32,15 +32,14 @@ public class Network {
 	    while ((nextChar = (char)is.read()) != null && 
 			nextChar != '/' && nextChar != '#' && nextChar != '=') {
 		//make sure the newly read character isn't escape character
-		if (nextChar == '\') 
+		if (nextChar == '\\') 
 		    nextChar = (char)is.read();
-		newEvent = newEvent + nextChar
+		newEvent = newEvent + nextChar;
 	    }
 	    switch (nextChar) {
 	    //make sure that this isn't a null case, meaning we have a read problem
 	    case null:
-		System.err.println("Something went wrong reading the file");
-		System.exit(1);
+		throw new InterruptedException();
 	    case '=':
 		//time to parse some numbers
 		String probability = "";
@@ -50,12 +49,10 @@ public class Network {
 		}
 		if (nextChar == '/' || nextChar == '#') {
 		    //expected scenario, parse the float
-		    float probability = Float.parseFloat(probability);
-		    addEvent(new Event(newEvent, probability));
+		    float prob = Float.parseFloat(probability);
+		    addEvent(new Event(newEvent, prob));
 		} else {
-		    //encountered an unexpected character
-		    System.err.println("Something went wrong reading the file");
-		    System.exit(1);
+		    throw new InterruptedException();
 		}
 		break;
 	    case '#': //time for no more events
@@ -66,11 +63,37 @@ public class Network {
 	}
 	
 	//now it will begin expressing conditional events
-	while (char nextChar != (char)is.read() != null) {
+	char nextChar = ' ';
+	while (nextChar != null) {
+	    nextChar = (char)is.read();
+	    if (nextChar == null) throw new InterruptedException();
 	    //treat it like we are starting a new probability
-	    if (nextChar == '\')
-		nextChar = (char) is.read();
-	    String event = "" + nextChar
+	    if (nextChar == '\\')
+		nextChar = (char)is.read();
+	    String event = "" + nextChar;
+	    while ((nextChar = (char)is.read()) != null && nextChar != '|') {
+		if (nextChar == '\\')
+		    nextChar = (char)is.read();
+		event = event + nextChar;
+	    }
+	    if (nextChar == null) throw new InterruptedException();
+	    String condEvent = "";
+	    while ((nextChar = (char)is.read()) != null && nextChar != '=') {
+		if (nextChar == '\\')
+		    nextChar = (char)is.read();
+		condEvent = condEvent + nextChar;
+	    }
+	    if (nextChar == null) throw new InterruptedException();
+	    //now have both events, read the actual probability
+	    String probability = "";
+	    while ((nextChar = (char)is.read()) != null &&
+		      (nextChar == '.' || Character.isDigit(nextChar))) {
+		probability = probability + nextChar;
+	    }
+	    float prob = Float.parseFloat(probability);
+	    addConditionalProbability(event, condEvent, prob);
+	    if (nextChar == null || nextChar != '/') throw new InterruptedException();
+	    if (nextChar == null) break; //can finish reading now
 	}
 	
 	/*
@@ -106,7 +129,7 @@ public class Network {
     }
     
     public static void main(String[] args) {
-	if (args[0] != null && args[0].equals("-n") {
+	if (args[0] != null && args[0].equals("-n")) {
 	    //allow user to create a new thing
 	    Network net = new Network();
 	} else {
