@@ -23,6 +23,123 @@ public class Network {
     }
 
     public Network(String filename) {
+	load(filename);
+    }
+    
+    public static void main(String[] args) {
+	if (args.length > 0) {
+	    if (args[0].equals("-l") && args.length > 1) {
+		//load in from the file specified
+		Network net = new Network(args[1]);
+		net.scanUserInput();
+	    } else if (args[0].equals("-n")) {
+		//allow user to create a new thing
+		Network net = new Network();
+		net.scanUserInput();
+	    } else {
+		System.out.println("To load an existing file use -l <FILENAME>");
+		System.out.println("To begin a new network use -n");
+	    } 
+	} else {
+	    //let's create a network for demonstration reasons
+	    Network net = new Network("DEFAULT.bys");
+	    net.showConnections();
+	    net.findProbability("D");
+	    net.findProbability("G");
+	    net.findProbability("E");
+	    net.scanUserInput();
+	}
+    }
+
+    //method to handle reading of user requests
+    private void scanUserInput() {
+	Scanner s = new Scanner(System.in);
+	boolean alive = true;
+	boolean changes = false;
+	while (alive) {
+	    try {
+		System.out.println();
+		System.out.print("-> ");
+		String parse = s.nextLine() + ' ';
+		System.out.println();
+		String command = parse.substring(0, parse.indexOf(' '));
+		switch (command) { //requires jdk version 7 and up
+		case "help": //lists the commands for the client
+		    System.out.println("These are the various commands for creating Bayesian Networks");
+		    System.out.println();
+		    System.out.println("New Event (no prior probability):   ne \"<EVENT NAME>\"");
+		    System.out.println("New Event (with prior probability): ne \"<EVENT NAME>\" <PROBABILITY>");
+		    System.out.println("New Conditional Probability:        ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>");
+		    System.out.println("Show all probabilities known:       list");
+		    System.out.println("Calculate probability for event:    get \"<EVENT>\"");
+		    System.out.println("Save Network:                       save \"<FILENAME>\"");
+		    System.out.println("Load Network:                       load \"<FILENAME>\"");
+		    System.out.println("Quit Program:                       exit");
+		    break;
+		case "ne": //new event
+		    String event = parse.substring(parse.indexOf('\"')+1);
+		    event = event.substring(0, event.indexOf('\"'));
+		    if (addEvent(new Event(event))) changes = true;
+		    break;
+		case "nep": //new event with probability
+		    event = parse.substring(parse.indexOf('\"')+1);
+		    float prob = Float.parseFloat(event.substring(event.indexOf('\"')+2));
+		    event = event.substring(0, event.indexOf('\"'));
+		    if (addEvent(new Event(event, prob))) changes = true;
+		    break;
+		case "ncp":
+		    event = parse.substring(parse.indexOf('\"')+1);
+		    String condEvent = event.substring(event.indexOf("|\"")+1);
+		    prob = Float.parseFloat(condEvent.substring(event.indexOf('\"')+2));
+		    event = event.substring(0, event.indexOf('\"'));
+		    condEvent = event.substring(0, event.indexOf('\"'));
+		    if (addConditionalProbability(event, condEvent, prob)) changes = true;
+		    break;
+		case "list":
+		    showConnections();
+		    break;
+		case "get":
+		    event = parse.substring(parse.indexOf('\"')+1);
+		    event = event.substring(0, event.indexOf('\"'));
+		    if (findProbability(event)) changes = true;
+		    break;
+		case "save": //save the file
+		    String filename = parse.substring(parse.indexOf('\"')+1);
+		    filename = filename.substring(0, filename.indexOf('\"'));
+		    if (save(filename)) changes = false;
+		    break;
+		case "load":
+		    filename = parse.substring(parse.indexOf('\"')+1);
+		    filename = filename.substring(0, filename.indexOf('\"'));
+		    if ((new File(filename).exists()) && changes) {
+			System.out.print("Unsaved changes will be lost. Continue y/n ");
+			String answer = s.next();
+			System.out.println();
+			if (!answer.equals("y")) {
+			    //load has been cancelled
+			    //treat as a cancel if they don't input y
+			    if (!answer.equals("n")) System.err.println("Unrecognised response");
+			    break;
+			}
+		    }
+		    load(filename);
+		    break;
+		case "exit": //quit the program
+		    alive = false;
+		    break;
+		default: 
+		    System.err.println("Unrecognised command");
+		    System.out.println("Use command \"help\" for usage");
+		}
+	    } catch (StringIndexOutOfBoundsException e) {
+		System.err.println("Paramaters specification not matched");
+		System.out.println("Use command \"help\" for usage");
+	    } 
+	}
+    }
+    
+    //method to load a file
+    private void load(String filename) {
 	//generate events
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
@@ -135,86 +252,6 @@ public class Network {
 	    System.exit(1);
 	} finally {
 	    try { if (is != null) is.close(); } catch (IOException e) { }
-	} 
-    }
-    
-    public static void main(String[] args) {
-	if (args.length > 0) {
-	    if (args[0].equals("-l") && args.length > 1) {
-		//load in from the file specified
-		Network net = new Network(args[1]);
-		net.scanUserInput();
-	    } else if (args[0].equals("-n")) {
-		//allow user to create a new thing
-		Network net = new Network();
-		net.scanUserInput();
-	    } else {
-		System.out.println("To load an existing file use -l <FILENAME>");
-		System.out.println("To begin a new network use -n");
-	    } 
-	} else {
-	    //let's create a network for demonstration reasons
-	    Network net = new Network("DEFAULT.bys");
-	    net.showConnections();
-	    net.findProbability("D");
-	    net.findProbability("G");
-	    net.findProbability("E");
-	    net.scanUserInput();
-	}
-    }
-
-    //method to handle reading of user requests
-    private void scanUserInput() {
-	Scanner s = new Scanner(System.in);
-	boolean alive = true;
-	while (alive) {
-	    System.out.println();
-	    System.out.print("-> ");
-	    String parse = s.nextLine() + ' ';
-	    System.out.println();
-	    String command = parse.substring(0, parse.indexOf(' '));
-	    switch (command) { //requires jdk version 7 and up
-	    case "help": //lists the commands for the client
-		System.out.println("These are the various commands for creating Bayesian Networks");
-		System.out.println();
-		System.out.println("New Event (no prior probability):    ne \"<EVENT NAME>\"");
-		System.out.println("New Event (with prior probability):  ne \"<EVENT NAME>\" <PROBABILITY>");
-		System.out.println("New Conditional Probability:         ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>");
-		System.out.println("Show all probabilities known:        list");
-		System.out.println("Get/Calculate probability for event: get \"<EVENT>\"");
-		System.out.println("Save Network:                        save \"<FILENAME>\"");
-		System.out.println("Load Network:                        load \"<FILENAME>\"");
-		System.out.println("Quit Program:                        exit");
-		break;
-	    case "ne": //new event
-		String event = parse.substring(parse.indexOf('\"')+1);
-		event = event.substring(0, event.indexOf('\"'));
-		addEvent(new Event(event));
-		break;
-	    case "nep": //new event with probability
-		event = parse.substring(parse.indexOf('\"')+1);
-		float prob = Float.parseFloat(event.substring(event.indexOf('\"')+2));
-		event = event.substring(0, event.indexOf('\"'));
-		addEvent(new Event(event, prob));
-		break;
-	    case "ncp":
-		event = parse.substring(parse.indexOf('\"')+1);
-		String condEvent = event.substring(event.indexOf("|\"")+1);
-		prob = Float.parseFloat(condEvent.substring(event.indexOf('\"')+2));
-		event = event.substring(0, event.indexOf('\"'));
-		condEvent = event.substring(0, event.indexOf('\"'));
-		addConditionalProbability(event, condEvent, prob);
-		break;
-	    case "list":
-		showConnections();
-		break;
-	    case "exit": //quit the program
-		alive = false;
-		break;
-	    default: 
-		System.err.println("Unrecognised command");
-		System.out.println("Use command \"help\" for usage");
-	    }
 	}
     }
     
@@ -223,6 +260,20 @@ public class Network {
 	FileOutputStream os = null;
 	try {
 	    //prepare the output stream
+	    File file = new File(filename);
+	    if (file.exists()) {
+		//make sure the user doesn't want to overwrite this file
+		System.out.print("The file " + filename + " already exists. Are you sure you want to replace it y/n ");
+		Scanner s = new Scanner(System.in);
+		String answer = s.next();
+		System.out.println();
+		if (!answer.equals("y")) {
+		    //save has been cancelled
+		    //treat failed y as exit
+		    if (!answer.equals("n")) System.err.println("Unrecognised response");
+		    return false;
+		}
+	    }
 	    os = new FileOutputStream(new File(filename));
 	    
 	    //work through the events first
@@ -308,6 +359,8 @@ public class Network {
 	    Event e = iterator.next().getKey();
 	    if (e.hasPrior())
 		System.out.println("P(" + e.getName() + ") = " + e.getProb());
+	    else //demonstrate this is missing
+		System.out.println("P(" + e.getName() + ") = ?");
 	}
 	iterator = probabilities.entrySet().iterator(); //reset iterator
 	while (iterator.hasNext()) {
@@ -381,35 +434,39 @@ public class Network {
 	return -1;
     }
     
-    public void findProbability(String eventName) {
+    public boolean findProbability(String eventName) {
 	Event event = findEvent(eventName);
+	if (event.hasPrior()) {
+	    System.out.println(event.getName() + " has probability " + event.getProb());
+	}
 	System.out.println("Calculating probability for " + event.getName());
 	float prob = calculateProbability(event);
 	if (prob == -1) {
 	    System.out.println("Probability incalculable");
+	    return false;
 	} else {
 	    System.out.println("The probability of " + event.getName() 
 		    + " is " + prob);
+	    return true;
 	}
     }
 
-    private void addEvent(Event e) {
+    private boolean addEvent(Event e) {
 	//make sure this event does not already exist
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator =
 	probabilities.entrySet().iterator();
 	while (iterator.hasNext()) {
 	    if (iterator.next().getKey().equals(e)) {
 		System.out.println("The event " + e.getName() + " already exists");
-		return;
+		return false;
 	    }
 	}
 	probabilities.put(e, new LinkedList<Prob>());
 	System.out.println("Added event " + e.getName());
-	 
-	
+	return true;
     }
 
-    private void addConditionalProbability(String B, String A, float prob) {
+    private boolean addConditionalProbability(String B, String A, float prob) {
 	//stored in hashmap under B
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	while (iterator.hasNext()) {
@@ -424,21 +481,22 @@ public class Network {
 			entry.getValue().add(new Prob(entry.getKey(), e, prob));
 			System.out.println("Added conditional event " + B + "|" + A 
 					    + "=" + prob);
-			return;
+			return true;
 		    } else if (e.not().getName().equals(A)) {
 			entry.getValue().add(new Prob(entry.getKey(), e.not(), prob));
 			System.out.println("Added conditional event " + B + "|" + A 
 					    + "=" + prob);
-			return;
+			return true;
 		    }
 		}
 		//if we reach here, means that event A doesn't exist
 		System.err.println("Event '" + A + "' doesn't exist");
-		return;
+		return false;
 	    }
 	}
 	//finishing the iterator means we didn't find event B
 	System.err.println("Event '" + B + "' doesn't exist");
+	return false;
     }
 
     private Event findEvent(String name) {

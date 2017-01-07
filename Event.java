@@ -22,7 +22,9 @@ public class Event {
     public Event(String n, float prob) {
         //if the probability is not between 0 and 1, then it is not a probability
         if (prob < 0 || prob > 1) {
-            System.out.println(name + " can not have a probability outside of [0-1]");
+            System.out.println(n + " can not have a probability outside of [0-1], removed prior probability");
+            name = n;
+            negation = new Event("!"+n, this);
         } else {
             name = n;
 	    probability = prob;
