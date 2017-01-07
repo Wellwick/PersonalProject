@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.Scanner; //temporary user input
 
 public class Network {
     //this class contains a network of Events linked by Probs
@@ -304,8 +305,4 @@ public class Network {
     }
 }
 
-class UnexpectedCharacterException extends IOException {
-    public UnexpectedCharacterException() {
-	
-    }
-}
+class UnexpectedCharacterException extends IOException { }
