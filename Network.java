@@ -159,6 +159,7 @@ public class Network {
 	    net.findProbability("D");
 	    net.findProbability("G");
 	    net.findProbability("E");
+	    net.scanUserInput();
 	}
     }
 
@@ -167,12 +168,13 @@ public class Network {
 	Scanner s = new Scanner(System.in);
 	boolean alive = true;
 	while (alive) {
+	    System.out.println();
+	    System.out.print("-> ");
 	    String parse = s.nextLine() + ' ';
 	    System.out.println();
 	    String command = parse.substring(0, parse.indexOf(' '));
 	    switch (command) { //requires jdk version 7 and up
 	    case "help": //lists the commands for the client
-		System.out.println();
 		System.out.println("These are the various commands for creating Bayesian Networks");
 		System.out.println();
 		System.out.println("New Event (no prior probability):    ne \"<EVENT NAME>\"");
@@ -195,7 +197,17 @@ public class Network {
 		event = event.substring(0, event.indexOf('\"'));
 		addEvent(new Event(event, prob));
 		break;
-	    
+	    case "ncp":
+		event = parse.substring(parse.indexOf('\"')+1);
+		String condEvent = event.substring(event.indexOf("|\"")+1);
+		prob = Float.parseFloat(condEvent.substring(event.indexOf('\"')+2));
+		event = event.substring(0, event.indexOf('\"'));
+		condEvent = event.substring(0, event.indexOf('\"'));
+		addConditionalProbability(event, condEvent, prob);
+		break;
+	    case "list":
+		showConnections();
+		break;
 	    case "exit": //quit the program
 		alive = false;
 		break;
@@ -291,6 +303,13 @@ public class Network {
     
     public void showConnections() {
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	//show the base events first
+	while (iterator.hasNext()) {
+	    Event e = iterator.next().getKey();
+	    if (e.hasPrior())
+		System.out.println("P(" + e.getName() + ") = " + e.getProb());
+	}
+	iterator = probabilities.entrySet().iterator(); //reset iterator
 	while (iterator.hasNext()) {
 	    Map.Entry<Event, LinkedList<Prob>> event = iterator.next(); {
 		if (event.getValue() != null) {
