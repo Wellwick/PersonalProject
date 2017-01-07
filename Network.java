@@ -130,44 +130,21 @@ public class Network {
 	} catch (IOException e) {
 	    System.err.println("Error occured while reading the file");
 	    System.exit(1);
-	} 
-	
-	/*
-	byte letter = (byte)'A';
-	addEvent(new Event((char)letter+"", 0.7f));
-	letter++;
-	addEvent(new Event((char)letter+"", 0.3f));
-	letter++;
-	addEvent(new Event((char)letter+"", 0.25f));
-	letter++;
-	for (int i=3; i<11; i++) {
-	    addEvent(new Event((char)letter+""));
-	    letter++;
 	}
-	//check the last event
-	System.out.println("The last event is labelled as " + getLast().getName());
-
-	//put in the probabilities
-	addConditionalProbability("D", "A", 0.4f);
-	addConditionalProbability("E", "B", 0.9f);
-	addConditionalProbability("E", "C", 0.5f);
-	addConditionalProbability("E", "!C", 0.7f);
-	addConditionalProbability("F", "E", 0.9f);
-	addConditionalProbability("G", "E", 0.7f);
-	addConditionalProbability("H", "F", 0.1f);
-	addConditionalProbability("I", "F", 0.4f);
-	addConditionalProbability("I", "G", 0.3f);
-	addConditionalProbability("I", "H", 0.8f);
-	addConditionalProbability("J", "H", 0.75f);
-	addConditionalProbability("J", "I", 0.5f);
-	addConditionalProbability("G", "!E", 0.3f);
-	*/
     }
     
     public static void main(String[] args) {
-	if (args.length > 0 && args[0].equals("-n")) {
-	    //allow user to create a new thing
-	    Network net = new Network();
+	if (args.length > 0) {
+	    if (args[0].equals("-l") && args.length > 1) {
+		//load in from the file specified
+		Network net = new Network(args[1]);
+	    } else if (args[0].equals("-n")) {
+		//allow user to create a new thing
+		Network net = new Network();
+	    } else {
+		System.out.println("To load an existing file use -l <FILENAME>");
+		System.out.println("To begin a new network use -n");
+	    } 
 	} else {
 	    //let's create a network for demonstration reasons
 	    Network net = new Network("DEFAULT.bys");
