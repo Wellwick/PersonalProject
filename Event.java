@@ -21,7 +21,7 @@ public class Event {
     //constructor for event with prior probability
     public Event(String n, float prob) {
         //if the probability is not between 0 and 1, then it is not a probability
-        if (probability < 0 || probability > 1) {
+        if (prob < 0 || prob > 1) {
             System.out.println(name + " can not have a probability outside of [0-1]");
         } else {
             name = n;
@@ -49,7 +49,7 @@ public class Event {
     
     public String getName() { return name; }
     public boolean hasPrior() { return hasPrior; }
-    public boolean equals(Event A) { return A.getName() == name; }
+    public boolean equals(Event A) { return A.getName().equals(name); }
     public float getProb() { return probability; }
     public Event not() { return negation; }
 }

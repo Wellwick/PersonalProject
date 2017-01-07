@@ -159,14 +159,36 @@ public class Network {
 	    net.findProbability("D");
 	    net.findProbability("G");
 	    net.findProbability("E");
-	    net.save("TEST.bys");
 	}
     }
 
     //method to handle reading of user requests
     private void scanUserInput() {
 	Scanner s = new Scanner(System.in);
-	
+	boolean alive = true;
+	while (alive) {
+	    String parse = s.nextLine() + ' ';
+	    String command = parse.substring(0, parse.indexOf(' '));
+	    switch (command) { //requires jdk version 7 and up
+	    case "help": //lists the commands for the client
+		
+	    case "ne": //new event
+		String event = parse.substring(parse.indexOf('\"')+1);
+		event = event.substring(0, event.indexOf('\"'));
+		addEvent(new Event(event));
+		break;
+	    case "nep": //new event with probability
+		event = parse.substring(parse.indexOf('\"')+1);
+		float prob = Float.parseFloat(event.substring(event.indexOf('\"')+2));
+		event = event.substring(0, event.indexOf('\"'));
+		addEvent(new Event(event, prob));
+		break;
+	    
+	    case "exit": //quit the program
+		alive = false;
+		break;
+	    }
+	}
     }
     
     //method to save the file, returns true on success
@@ -259,9 +281,9 @@ public class Network {
 		if (event.getValue() != null) {
 		    Iterator<Prob> iter = event.getValue().descendingIterator();
 		    while (iter.hasNext()) {
-			    Prob p = iter.next();
-			    System.out.println("P(" + p.getEvent().getName() + "|" +
-				    p.getConditional().getName() + ") = " + p.getProb());
+			Prob p = iter.next();
+			System.out.println("P(" + p.getEvent().getName() + "|" +
+			    p.getConditional().getName() + ") = " + p.getProb());
 		    }
 		}
 	    }
@@ -338,8 +360,19 @@ public class Network {
     }
 
     private void addEvent(Event e) {
-	System.out.println("Adding event " + e.getName());
+	//make sure this event does not already exist
+	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator =
+	probabilities.entrySet().iterator();
+	while (iterator.hasNext()) {
+	    if (iterator.next().getKey().equals(e)) {
+		System.out.println("The event " + e.getName() + " already exists");
+		return;
+	    }
+	}
 	probabilities.put(e, new LinkedList<Prob>());
+	System.out.println("Added event " + e.getName());
+	 
+	
     }
 
     private void addConditionalProbability(String B, String A, float prob) {
