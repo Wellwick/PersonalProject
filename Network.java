@@ -1,5 +1,8 @@
-import java.io.FileInputStream;
+import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,87 +17,120 @@ public class Network {
 	
     public Network() {
 	//means we are started with a empty network
-	probabilites = new HashMap<Event, LinkedList<Prob>>();
+	probabilities = new HashMap<Event, LinkedList<Prob>>();
     }
 
     public Network(String filename) {
 	//generate events
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
-	//read in from the file
-	FileInputStream is = new FileInputStream(new File(filename));
-	
-	//initially have to read in the Event names
-	boolean events = true;
-	while (events) {
+	try {
+	    //read in from the file
+	    FileInputStream is = new FileInputStream(new File(filename));
+	    
+	    //initially have to read in the Event names
+	    boolean events = true;
 	    String newEvent = "";
 	    char nextChar;
-	    while ((nextChar = (char)is.read()) != null && 
-			nextChar != '/' && nextChar != '#' && nextChar != '=') {
-		//make sure the newly read character isn't escape character
-		if (nextChar == '\\') 
+	    try {
+		try {
+		    //always get the first character for 
 		    nextChar = (char)is.read();
-		newEvent = newEvent + nextChar;
-	    }
-	    switch (nextChar) {
-	    //make sure that this isn't a null case, meaning we have a read problem
-	    case null:
-		throw new InterruptedException();
-	    case '=':
-		//time to parse some numbers
+		    if (nextChar == '\\')
+			nextChar = (char)is.read();
+		    
+		    newEvent = newEvent + nextChar;
+		} catch (EOFException e) { 
+		    //just means we have an empty file with no events
+		    return;
+		}
+		
+		while (events) {
+		    try {
+			while ((nextChar = (char)is.read()) != '/' && 
+				    nextChar != '#' && nextChar != '=') {
+			    //make sure the newly read character isn't escape character
+			    if (nextChar == '\\') 
+				nextChar = (char)is.read();
+			    newEvent = newEvent + nextChar;
+			}
+		    } catch (EOFException e) {
+			//reached the end of the file while producing a new event
+			addEvent(new Event(newEvent));
+			return;
+		    }
+		    switch (nextChar) {
+		    case '=':
+			//time to parse some numbers
+			String probability = "";
+			try {
+			    while ((nextChar = (char)is.read()) == '.' || 
+					    Character.isDigit(nextChar)) {
+				probability = probability + nextChar;
+			    }
+			    if (nextChar == '/' || nextChar == '#') {
+				//expected scenario, parse the float
+				float prob = Float.parseFloat(probability);
+				addEvent(new Event(newEvent, prob));
+			    } else {
+				throw new UnexpectedCharacterException();
+			    }
+			} catch (EOFException e) {
+			    //finished file on a probability with existing probability
+			    float prob = Float.parseFloat(probability);
+			    addEvent(new Event(newEvent, prob));
+			} 
+			break;
+		    case '#': //time for no more events
+			events = false;
+		    default: //this will be a new event character, carry on
+			if (!newEvent.equals(""))
+			    addEvent(new Event(newEvent));
+		    }
+		    newEvent = "";
+		}
+	    } catch (UnexpectedCharacterException e) {
+		System.err.println("Unexpected character in the file, crashing");
+		System.exit(1);
+	    } 
+	    
+	    System.out.println("Reading conditional events");
+	    //now it will begin expressing conditional events
+	    boolean eof = false;
+	    while (!eof) {
+		nextChar = (char)is.read();
+		//treat it like we are starting a new probability
+		if (nextChar == '\\')
+		    nextChar = (char)is.read();
+		String event = "" + nextChar;
+		while ((nextChar = (char)is.read()) != '|') {
+		    if (nextChar == '\\')
+			nextChar = (char)is.read();
+		    event = event + nextChar;
+		}
+		String condEvent = "";
+		while ((nextChar = (char)is.read()) != '=') {
+		    if (nextChar == '\\')
+			nextChar = (char)is.read();
+		    condEvent = condEvent + nextChar;
+		}
+		//now have both events, read the actual probability
 		String probability = "";
-		while ((nextChar = (char)is.read()) != null && 
-			  (nextChar == '.' || Character.isDigit(nextChar))) {
+		while ((nextChar = (char)is.read()) == '.' ||
+			    Character.isDigit(nextChar)) {
 		    probability = probability + nextChar;
 		}
-		if (nextChar == '/' || nextChar == '#') {
-		    //expected scenario, parse the float
-		    float prob = Float.parseFloat(probability);
-		    addEvent(new Event(newEvent, prob));
-		} else {
-		    throw new InterruptedException();
-		}
-		break;
-	    case '#': //time for no more events
-		events = false;
-		break;
-	    default: //this will be a new event character, carry on
+		if ((byte)nextChar == -1) eof = true;
+		float prob = Float.parseFloat(probability);
+		addConditionalProbability(event, condEvent, prob);
 	    }
-	}
-	
-	//now it will begin expressing conditional events
-	char nextChar = ' ';
-	while (nextChar != null) {
-	    nextChar = (char)is.read();
-	    if (nextChar == null) throw new InterruptedException();
-	    //treat it like we are starting a new probability
-	    if (nextChar == '\\')
-		nextChar = (char)is.read();
-	    String event = "" + nextChar;
-	    while ((nextChar = (char)is.read()) != null && nextChar != '|') {
-		if (nextChar == '\\')
-		    nextChar = (char)is.read();
-		event = event + nextChar;
-	    }
-	    if (nextChar == null) throw new InterruptedException();
-	    String condEvent = "";
-	    while ((nextChar = (char)is.read()) != null && nextChar != '=') {
-		if (nextChar == '\\')
-		    nextChar = (char)is.read();
-		condEvent = condEvent + nextChar;
-	    }
-	    if (nextChar == null) throw new InterruptedException();
-	    //now have both events, read the actual probability
-	    String probability = "";
-	    while ((nextChar = (char)is.read()) != null &&
-		      (nextChar == '.' || Character.isDigit(nextChar))) {
-		probability = probability + nextChar;
-	    }
-	    float prob = Float.parseFloat(probability);
-	    addConditionalProbability(event, condEvent, prob);
-	    if (nextChar == null || nextChar != '/') throw new InterruptedException();
-	    if (nextChar == null) break; //can finish reading now
-	}
+	} catch (FileNotFoundException e) {
+	    System.err.println("Error occured while reading the file");
+	    System.exit(1);
+	} catch (IOException e) {
+	    System.err.println("Error occured while reading the file");
+	    System.exit(1);
+	} 
 	
 	/*
 	byte letter = (byte)'A';
@@ -129,7 +165,7 @@ public class Network {
     }
     
     public static void main(String[] args) {
-	if (args[0] != null && args[0].equals("-n")) {
+	if (args.length > 0 && args[0].equals("-n")) {
 	    //allow user to create a new thing
 	    Network net = new Network();
 	} else {
@@ -228,6 +264,7 @@ public class Network {
     }
 
     private void addEvent(Event e) {
+	System.out.println("Adding event " + e.getName());
 	probabilities.put(e, new LinkedList<Prob>());
     }
 
@@ -244,9 +281,13 @@ public class Network {
 		    Event e = iter.next().getKey();
 		    if (e.getName().equals(A)) {
 			entry.getValue().add(new Prob(entry.getKey(), e, prob));
+			System.out.println("Added conditional event " + B + "|" + A 
+					    + "=" + prob);
 			return;
 		    } else if (e.not().getName().equals(A)) {
 			entry.getValue().add(new Prob(entry.getKey(), e.not(), prob));
+			System.out.println("Added conditional event " + B + "|" + A 
+					    + "=" + prob);
 			return;
 		    }
 		}
@@ -283,5 +324,11 @@ public class Network {
 	    e = iterator.next().getKey();
 	}
 	return e;
+    }
+}
+
+class UnexpectedCharacterException extends IOException {
+    public UnexpectedCharacterException() {
+	
     }
 }
