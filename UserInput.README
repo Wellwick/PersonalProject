@@ -6,6 +6,8 @@ these are the commands that are used
 New Event: ne '<EVENT NAME>'
 New Event with Probability: nep '<EVENT NAME>' <PROBABILITY>
 New Conditional Probability: ncp '<EVENT>'|'<CONDITIONAL EVENT>' <PROBABILITY>
+Show Connections/Probabilities: list
 Calculate Probability for Event: getp '<EVENT>'
 Save Network: save '<FILENAME>'
 Load Network: load '<FILENAME>'
+Quit Program: exit

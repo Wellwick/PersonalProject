@@ -1,6 +1,7 @@
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -25,9 +26,10 @@ public class Network {
 	//generate events
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
+	FileInputStream is = null;
 	try {
 	    //read in from the file
-	    FileInputStream is = new FileInputStream(new File(filename));
+	    is = new FileInputStream(new File(filename));
 	    
 	    //initially have to read in the Event names
 	    boolean events = true;
@@ -131,7 +133,9 @@ public class Network {
 	} catch (IOException e) {
 	    System.err.println("Error occured while reading the file");
 	    System.exit(1);
-	}
+	} finally {
+	    try { if (is != null) is.close(); } catch (IOException e) { }
+	} 
     }
     
     public static void main(String[] args) {
@@ -139,9 +143,11 @@ public class Network {
 	    if (args[0].equals("-l") && args.length > 1) {
 		//load in from the file specified
 		Network net = new Network(args[1]);
+		net.scanUserInput();
 	    } else if (args[0].equals("-n")) {
 		//allow user to create a new thing
 		Network net = new Network();
+		net.scanUserInput();
 	    } else {
 		System.out.println("To load an existing file use -l <FILENAME>");
 		System.out.println("To begin a new network use -n");
@@ -153,9 +159,99 @@ public class Network {
 	    net.findProbability("D");
 	    net.findProbability("G");
 	    net.findProbability("E");
+	    net.save("TEST.bys");
 	}
     }
 
+    //method to handle reading of user requests
+    private void scanUserInput() {
+	Scanner s = new Scanner(System.in);
+	
+    }
+    
+    //method to save the file, returns true on success
+    private boolean save(String filename) {
+	FileOutputStream os = null;
+	try {
+	    //prepare the output stream
+	    os = new FileOutputStream(new File(filename));
+	    
+	    //work through the events first
+	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	    while (iterator.hasNext()) {
+		Event event = iterator.next().getKey();
+		//need to output to file and escape special characters
+		String name = event.getName();
+		if (!writeEvent(name, os)) return false;
+		
+		//event may have prior probability
+		if (event.hasPrior()) {
+		    os.write((byte)'=');
+		    String prob = "" + event.getProb();
+		    for (int j = 0; j < prob.length(); j++) {
+			os.write((byte)prob.charAt(j));
+		    }
+		}
+		os.write((byte)'/');
+	    }
+	    //now all events have been written we write out the conditional 
+	    //probabilities, reset iterator
+	    iterator = probabilities.entrySet().iterator();
+	    //may not need to seperate if there are no events
+	    boolean seperator = false;
+	    while (iterator.hasNext()) {
+		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		Iterator<Prob> iter = entry.getValue().descendingIterator();
+		while (iter.hasNext()) {
+		    if (!seperator) {
+			//means we need to specify there will be some conditional 
+			//probability
+			os.write('#');
+			seperator = true;
+		    }
+		    Prob condProb = iter.next();
+		    writeEvent(condProb.getEvent().getName(), os);
+		    os.write('|');
+		    writeEvent(condProb.getConditional().getName(), os);
+		    os.write('=');
+		    String prob = "" + condProb.getProb();
+		    for (int k = 0; k < prob.length(); k++) {
+			os.write((byte)prob.charAt(k));
+		    }
+		    os.write((byte)'/');
+		}
+	    }
+	    
+	} catch (FileNotFoundException e) { 
+	    System.out.println("File doesn't exist");
+	    return false;
+	} catch (IOException e) {
+	    //something bad happened
+	    return false;
+	} finally {
+	    try {if (os != null) os.close(); } catch (IOException e) { }
+	} 
+	return true;
+    }
+    
+    //method to output event string with proper escaping characters
+    private boolean writeEvent(String name, FileOutputStream os) {
+	try {
+	    for (int i = 0; i < name.length(); i++) {
+		char character = name.charAt(i);
+		switch (character) {
+		case '#':
+		case '/':
+		case '=':
+		case '|':
+		    os.write((byte)'\\');
+		}
+		os.write((byte)character);
+	    }
+	} catch (IOException e) { return false; }
+	return true;
+    }
+    
     public void showConnections() {
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	while (iterator.hasNext()) {
