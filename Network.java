@@ -168,10 +168,22 @@ public class Network {
 	boolean alive = true;
 	while (alive) {
 	    String parse = s.nextLine() + ' ';
+	    System.out.println();
 	    String command = parse.substring(0, parse.indexOf(' '));
 	    switch (command) { //requires jdk version 7 and up
 	    case "help": //lists the commands for the client
-		
+		System.out.println();
+		System.out.println("These are the various commands for creating Bayesian Networks");
+		System.out.println();
+		System.out.println("New Event (no prior probability):    ne \"<EVENT NAME>\"");
+		System.out.println("New Event (with prior probability):  ne \"<EVENT NAME>\" <PROBABILITY>");
+		System.out.println("New Conditional Probability:         ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>");
+		System.out.println("Show all probabilities known:        list");
+		System.out.println("Get/Calculate probability for event: get \"<EVENT>\"");
+		System.out.println("Save Network:                        save \"<FILENAME>\"");
+		System.out.println("Load Network:                        load \"<FILENAME>\"");
+		System.out.println("Quit Program:                        exit");
+		break;
 	    case "ne": //new event
 		String event = parse.substring(parse.indexOf('\"')+1);
 		event = event.substring(0, event.indexOf('\"'));
@@ -187,6 +199,9 @@ public class Network {
 	    case "exit": //quit the program
 		alive = false;
 		break;
+	    default: 
+		System.err.println("Unrecognised command");
+		System.out.println("Use command \"help\" for usage");
 	    }
 	}
     }
