@@ -68,7 +68,7 @@ public class Network {
 		    System.out.println("These are the various commands for creating Bayesian Networks");
 		    System.out.println();
 		    System.out.println("New Event (no prior probability):   ne \"<EVENT NAME>\"");
-		    System.out.println("New Event (with prior probability): ne \"<EVENT NAME>\" <PROBABILITY>");
+		    System.out.println("New Event (with prior probability): nep \"<EVENT NAME>\" <PROBABILITY>");
 		    System.out.println("New Conditional Probability:        ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>");
 		    System.out.println("Show all probabilities known:       list");
 		    System.out.println("Calculate probability for event:    get \"<EVENT>\"");
