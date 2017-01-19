@@ -89,10 +89,12 @@ public class Network {
 		    break;
 		case "ncp":
 		    event = parse.substring(parse.indexOf('\"')+1);
-		    String condEvent = event.substring(event.indexOf("|\"")+1);
-		    prob = Float.parseFloat(condEvent.substring(event.indexOf('\"')+2));
+		    String condEvent = event.substring(event.indexOf("|\"")+2);
+		    String val = condEvent.substring(condEvent.indexOf('\"')+2);
+		    System.out.println(val);
+		    prob = Float.parseFloat(val);
 		    event = event.substring(0, event.indexOf('\"'));
-		    condEvent = event.substring(0, event.indexOf('\"'));
+		    condEvent = condEvent.substring(0, condEvent.indexOf('\"'));
 		    if (addConditionalProbability(event, condEvent, prob)) changes = true;
 		    break;
 		case "list":
