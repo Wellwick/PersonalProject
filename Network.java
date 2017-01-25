@@ -169,9 +169,14 @@ public class Network implements ActionListener {
 		    break;
 		case "nep": //new event with probability
 		    event = parse.substring(parse.indexOf('\"')+1);
-		    float prob = Float.parseFloat(event.substring(event.indexOf('\"')+2));
+		    String extra = event.substring(event.indexOf('\"')+2);
+		    float prob = Float.parseFloat(extra.substring(0, extra.indexOf(' ')));
+		    extra = extra.substring(extra.indexOf(' ')+1);
+		    x = Integer.parseInt(extra.substring(0, extra.indexOf(' ')));
+		    extra = extra.substring(extra.indexOf(' ')+1);
+		    y = Integer.parseInt(extra.substring(0, extra.indexOf(' ')));
 		    event = event.substring(0, event.indexOf('\"'));
-		    if (addEvent(new Event(event, prob, 0, 0))) changes = true;
+		    if (addEvent(new Event(event, prob, x, y))) changes = true;
 		    break;
 		case "ncp":
 		    event = parse.substring(parse.indexOf('\"')+1);
@@ -340,14 +345,14 @@ public class Network implements ActionListener {
 		    condEvent = condEvent + nextChar;
 		}
 		//now have both events, read the actual probability
-		String probability = "";
-		while ((nextChar = (char)is.read()) == '.' ||
-			    Character.isDigit(nextChar)) {
-		    probability = probability + nextChar;
-		}
+		byte[] prob = new byte[4];
+		prob[0] = (byte)is.read();
+		prob[1] = (byte)is.read();
+		prob[2] = (byte)is.read();
+		prob[3] = (byte)is.read();
+		nextChar = (char)is.read();
 		if ((byte)nextChar == -1) eof = true;
-		float prob = Float.parseFloat(probability);
-		addConditionalProbability(event, condEvent, prob);
+		addConditionalProbability(event, condEvent, ByteBuffer.wrap(prob).getFloat());
 	    }
 	} catch (FileNotFoundException e) {
 	    System.err.println("Error occured while reading the file");
@@ -427,17 +432,19 @@ public class Network implements ActionListener {
 			//probability
 			os.write('#');
 			seperator = true;
-		    }
+		    } else {
+                        os.write((byte)'/');
+		    } 
 		    Prob condProb = iter.next();
 		    writeEvent(condProb.getEvent().getName(), os);
 		    os.write('|');
 		    writeEvent(condProb.getConditional().getName(), os);
 		    os.write('=');
-		    String prob = "" + condProb.getProb();
-		    for (int k = 0; k < prob.length(); k++) {
-			os.write((byte)prob.charAt(k));
-		    }
-		    os.write((byte)'/');
+		    byte[] prob = ByteBuffer.allocate(4).putFloat(condProb.getProb()).array();
+		    os.write(prob[0]);
+		    os.write(prob[1]);
+		    os.write(prob[2]);
+		    os.write(prob[3]);
 		}
 	    }
 	    
@@ -666,8 +673,12 @@ public class Network implements ActionListener {
 		addMouseListener(new MouseAdapter() {
 		    @Override
 		    public void mouseClicked(MouseEvent e) {
-			if (item.contains(e.getX(), e.getY()))
+			if (item.contains(e.getX(), e.getY())) {
 			    System.out.println("You just clicked event " + event.getName());
+			    if (event.hasPrior()) {
+                                System.out.println(event.getName() + " has probability " + event.getProb());
+			    }
+                        }
 		    }
 		});
 		g2.draw(item);
