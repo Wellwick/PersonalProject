@@ -17,6 +17,7 @@ import java.util.Scanner; //temporary user input
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
@@ -668,7 +669,8 @@ public class Network implements ActionListener {
 	    //for each event we need to draw an Ellipse
 	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	    while (iterator.hasNext()) {
-		Event event = iterator.next().getKey();
+		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		Event event = entry.getKey();
 		Ellipse2D.Double item = new Ellipse2D.Double(event.getX(), event.getY(), 100, 60);
 		addMouseListener(new MouseAdapter() {
 		    @Override
@@ -688,6 +690,15 @@ public class Network implements ActionListener {
 		int x = event.getX() + (50) - (fm.stringWidth(name)/2);
 		int y = event.getY() + (60/2) + 5;
 		g2.drawString(name, x, y);
+		//now have to step through and display each showConnections
+		Iterator<Prob> probs = entry.getValue().descendingIterator();
+		while (probs.hasNext()) {
+                    Prob prob = probs.next();
+                    Event cond = prob.getConditional();
+                    Event next = prob.getEvent();
+                    g2.draw(new Line2D.Double(cond.getX()+100, cond.getY()+30, next.getX(), next.getY()+30));
+		}
+		
 	    }
 	    
 	}
