@@ -7,47 +7,49 @@ public class Event {
     int x, y;
     
     //constructor for event with no prior probability
-    public Event(String n) { 
+    public Event(String n, int px, int py) { 
         name = n;
         //make assumption that each event forces the creation of it's negation
-        negation = new Event("!"+n, this); // !<Event> produces the negation
-        x = 30;
-        y = 30;
+        negation = new Event("!"+n, this, px, py); // !<Event> produces the negation
+        x = px;
+        y = py;
     }
     
     //constructor for negation
-    public Event(String n, Event neg) {
+    public Event(String n, Event neg, int px, int py) {
         name = n;
         negation = neg;
-        x = 30;
-        y = 30;
+        x = px;
+        y = py;
     }
 
     //constructor for event with prior probability
-    public Event(String n, float prob) {
+    public Event(String n, float prob, int px, int py) {
         //if the probability is not between 0 and 1, then it is not a probability
         if (prob < 0 || prob > 1) {
 	    System.out.println(n + " can not have a probability outside of [0-1], removed prior probability");
 	    name = n;
-	    negation = new Event("!"+n, this);
-	    x = 30;
-	    y = 30;
+	    negation = new Event("!"+n, this, px, py);
+	    x = px;
+	    y = py;
         } else {
 	    name = n;
 	    probability = prob;
 	    hasPrior = true;
-	    negation = new Event("!"+n, 1.0f-prob, this); //needs a different
-	    x = 30;
-	    y = 30;
+	    negation = new Event("!"+n, 1.0f-prob, this, px, py); //needs a different
+	    x = px;
+	    y = py;
         }
     }
 
     //constructor for negation event
-    public Event(String n, float prob, Event neg) {
+    public Event(String n, float prob, Event neg, int px, int py) {
         name = n;
         probability = prob;
         hasPrior = true;
         negation = neg;
+        x = px;
+        y = py;
     }
     
     //setting the probability for 

@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Map;
@@ -159,14 +160,18 @@ public class Network implements ActionListener {
 		    break;
 		case "ne": //new event
 		    String event = parse.substring(parse.indexOf('\"')+1);
+		    String pos = event.substring(event.indexOf('\"')+2);
 		    event = event.substring(0, event.indexOf('\"'));
-		    if (addEvent(new Event(event))) changes = true;
+		    int x = Integer.parseInt(pos.substring(0,pos.indexOf(' ')));
+		    String yPos = pos.substring(pos.indexOf(' ')+1);
+		    int y = Integer.parseInt(yPos.substring(0,yPos.indexOf(' ')));
+		    if (addEvent(new Event(event, x, y))) changes = true;
 		    break;
 		case "nep": //new event with probability
 		    event = parse.substring(parse.indexOf('\"')+1);
 		    float prob = Float.parseFloat(event.substring(event.indexOf('\"')+2));
 		    event = event.substring(0, event.indexOf('\"'));
-		    if (addEvent(new Event(event, prob))) changes = true;
+		    if (addEvent(new Event(event, prob, 0, 0))) changes = true;
 		    break;
 		case "ncp":
 		    event = parse.substring(parse.indexOf('\"')+1);
@@ -219,6 +224,7 @@ public class Network implements ActionListener {
 		System.out.println("Use command \"help\" for usage");
 	    } 
 	}
+	System.exit(0);
     }
     
     //method to load a file
@@ -250,8 +256,7 @@ public class Network implements ActionListener {
 		
 		while (events) {
 		    try {
-			while ((nextChar = (char)is.read()) != '/' && 
-				    nextChar != '#' && nextChar != '=') {
+			while ((nextChar = (char)is.read()) != ',' && nextChar != '=') {
 			    //make sure the newly read character isn't escape character
 			    if (nextChar == '\\') 
 				nextChar = (char)is.read();
@@ -259,37 +264,54 @@ public class Network implements ActionListener {
 			}
 		    } catch (EOFException e) {
 			//reached the end of the file while producing a new event
-			addEvent(new Event(newEvent));
-			return;
+			throw new IOException();
 		    }
+		    float val = -1;
 		    switch (nextChar) {
 		    case '=':
 			//time to parse some numbers
-			String probability = "";
-			try {
-			    while ((nextChar = (char)is.read()) == '.' || 
-					    Character.isDigit(nextChar)) {
-				probability = probability + nextChar;
-			    }
-			    if (nextChar == '/' || nextChar == '#') {
-				//expected scenario, parse the float
-				float prob = Float.parseFloat(probability);
-				addEvent(new Event(newEvent, prob));
-			    } else {
-				throw new UnexpectedCharacterException();
-			    }
-			} catch (EOFException e) {
-			    //finished file on a probability with existing probability
-			    float prob = Float.parseFloat(probability);
-			    addEvent(new Event(newEvent, prob));
-			} 
+			byte[] prob = new byte[4];
+			prob[0] = (byte)is.read();
+			prob[1] = (byte)is.read();
+			prob[2] = (byte)is.read();
+			prob[3] = (byte)is.read();
+			//need to carry on and read the next 2 ints
+			val = ByteBuffer.wrap(prob).getFloat();
+		    case ',':
+			//now need to parse two ints
+			byte[] x = new byte[4];
+			byte[] y = new byte[4];
+			x[0] = (byte)is.read();
+			x[1] = (byte)is.read();
+			x[2] = (byte)is.read();
+			x[3] = (byte)is.read();
+			y[0] = (byte)is.read();
+			y[1] = (byte)is.read();
+			y[2] = (byte)is.read();
+			y[3] = (byte)is.read();
+			if (val != -1)
+			    addEvent(new Event(newEvent, val, ByteBuffer.wrap(x).getInt(), ByteBuffer.wrap(y).getInt()));
+			else
+			    addEvent(new Event(newEvent, ByteBuffer.wrap(x).getInt(), ByteBuffer.wrap(y).getInt()));
 			break;
-		    case '#': //time for no more events
-			events = false;
-		    default: //this will be a new event character, carry on
-			if (!newEvent.equals(""))
-			    addEvent(new Event(newEvent));
 		    }
+		    //need to continue reading events
+		    try {
+			nextChar = (char)is.read();
+			if (nextChar == '#') {
+			    //time to move on to conditional events
+			    events = false;
+			} else if (nextChar !='/') {
+			    //we have a problem!
+			    //may just be at the end of the file
+			    if ((byte)nextChar == -1) throw new EOFException();
+			    else throw new UnexpectedCharacterException();
+			}
+		    } catch (EOFException e) {
+			//all finished with events and no conditional events
+			return;
+		    } 
+		    
 		    newEvent = "";
 		}
 	    } catch (UnexpectedCharacterException e) {
@@ -370,12 +392,26 @@ public class Network implements ActionListener {
 		//event may have prior probability
 		if (event.hasPrior()) {
 		    os.write((byte)'=');
-		    String prob = "" + event.getProb();
-		    for (int j = 0; j < prob.length(); j++) {
-			os.write((byte)prob.charAt(j));
-		    }
+		    byte[] prob = ByteBuffer.allocate(4).putFloat(event.getProb()).array();
+		    os.write(prob[0]);
+		    os.write(prob[1]);
+		    os.write(prob[2]);
+		    os.write(prob[3]);
+		} else {
+		    //have to seperate for x and y coordinates
+		    os.write((byte)',');
 		}
-		os.write((byte)'/');
+		byte[] x = ByteBuffer.allocate(4).putInt(event.getX()).array();
+		byte[] y = ByteBuffer.allocate(4).putInt(event.getY()).array();
+		os.write(x[0]);
+		os.write(x[1]);
+		os.write(x[2]);
+		os.write(x[3]);
+		os.write(y[0]);
+		os.write(y[1]);
+		os.write(y[2]);
+		os.write(y[3]);
+		if (iterator.hasNext()) os.write((byte)'/');
 	    }
 	    //now all events have been written we write out the conditional 
 	    //probabilities, reset iterator
@@ -545,7 +581,10 @@ public class Network implements ActionListener {
 	    }
 	}
 	probabilities.put(e, new LinkedList<Prob>());
-	System.out.println("Added event " + e.getName());
+	System.out.println("Added event " + e.getName() + " at " + e.getX() + ", " + e.getY());
+	//if (e.hasPrior()) System.out.println("Probability = " + e.getProb());
+	//force a redraw
+	
 	return true;
     }
 
@@ -601,14 +640,14 @@ public class Network implements ActionListener {
     //iterate through the hashmap and find the last added event
     private Event getLast() {
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
-	Event e = new Event("<NO EVENTS>");
+	Event e = null;
 	while (iterator.hasNext()) {
 	    e = iterator.next().getKey();
 	}
 	return e;
     }
     
-    private class DrawPanel extends JPanel implements MouseListener {
+    private class DrawPanel extends JPanel {
 	public DrawPanel() {
 	    super();
 	}
@@ -635,14 +674,6 @@ public class Network implements ActionListener {
 	    }
 	    
 	}
-	
-	//mouselistener events
-	public void mouseClicked(MouseEvent e) { }
-	public void mouseEntered(MouseEvent e) { }
-	public void mouseExited(MouseEvent e) { }
-	public void mousePressed(MouseEvent e) { }
-	public void mouseReleased(MouseEvent e) { }
-	
 	
     }
 }
