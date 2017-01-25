@@ -671,6 +671,12 @@ public class Network implements ActionListener {
 		    }
 		});
 		g2.draw(item);
+		String name = event.getName();
+		//need equal space either side on x
+		FontMetrics fm = g2.getFontMetrics();
+		int x = event.getX() + (50) - (fm.stringWidth(name)/2);
+		int y = event.getY() + (60/2) + 5;
+		g2.drawString(name, x, y);
 	    }
 	    
 	}
