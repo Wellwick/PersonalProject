@@ -12,7 +12,20 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.Scanner; //temporary user input
 
-public class Network {
+//everything needed for visual element
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JMenuBar;
+import javax.swing.KeyStroke;
+
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
+import javax.swing.JFrame;
+
+public class Network implements ActionListener {
     //this class contains a network of Events linked by Probs
     //in order to better traverse graph, construct probabilities in adjacency list
     HashMap<Event, LinkedList<Prob>> probabilities;
@@ -31,10 +44,12 @@ public class Network {
 	    if (args[0].equals("-l") && args.length > 1) {
 		//load in from the file specified
 		Network net = new Network(args[1]);
+		net.makeGUI();
 		net.scanUserInput();
 	    } else if (args[0].equals("-n")) {
 		//allow user to create a new thing
 		Network net = new Network();
+		net.makeGUI();
 		net.scanUserInput();
 	    } else {
 		System.out.println("To load an existing file use -l <FILENAME>");
@@ -43,6 +58,7 @@ public class Network {
 	} else {
 	    //let's create a network for demonstration reasons
 	    Network net = new Network("DEFAULT.bys");
+	    net.makeGUI();
 	    net.showConnections();
 	    net.findProbability("D");
 	    net.findProbability("G");
@@ -50,7 +66,70 @@ public class Network {
 	    net.scanUserInput();
 	}
     }
+    
+    //create and display the GUI
+    private void makeGUI() {
+	JFrame frame = new JFrame("Bayesian Network");
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+	frame.setJMenuBar(getMenuBar());
+	frame.setContentPane(getContentPane());
+
+	frame.setSize(1280, 720);
+	frame.setVisible(true);
+        
+    }
+    
+    //making the menu bar
+    private JMenuBar getMenuBar() {
+	JMenuBar menuBar;
+	JMenu menu;
+	JMenuItem menuItem; //stores new items temporarily for addition
+	
+	menuBar = new JMenuBar();
+	
+	//menu specifically for file operations
+	menu = new JMenu("File");
+	menuBar.add(menu);
+	
+	menuItem = new JMenuItem("New Network");
+	menuItem.addActionListener(this);
+	menu.add(menuItem);
+	
+	menuItem = new JMenuItem("Load Network");
+	menuItem.addActionListener(this);
+	menu.add(menuItem);
+	
+	menuItem = new JMenuItem("Quit");
+	menuItem.addActionListener(this);
+	menu.add(menuItem);
+	
+	return menuBar;
+    }
+    
+    //get the content pane -- currently empty
+    private Container getContentPane() {
+	return new Container();
+    }
+    
+    //catches action events from the menu
+    public void actionPerformed(ActionEvent e) {
+	JMenuItem source = (JMenuItem)(e.getSource());
+	switch (source.getText()) {
+	case "New Network":
+	    //make a new network
+	    System.out.println("Making a new network");
+	    break;
+	case "Load Network":
+	    //load a previous network
+	    System.out.println("Loading a network");
+	    break;
+	case "Quit":
+	    System.out.println("Quitting");
+	    System.exit(0);
+	}
+    }
+    
     //method to handle reading of user requests
     private void scanUserInput() {
 	Scanner s = new Scanner(System.in);
