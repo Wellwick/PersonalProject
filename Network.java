@@ -608,7 +608,7 @@ public class Network implements ActionListener {
 	return e;
     }
     
-    private class DrawPanel extends JPanel {
+    private class DrawPanel extends JPanel implements MouseListener {
 	public DrawPanel() {
 	    super();
 	}
@@ -619,8 +619,31 @@ public class Network implements ActionListener {
 	    Graphics2D g2 = (Graphics2D) g;
 	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	    g2.setPaint(Color.black);
-	    g2.draw(new Ellipse2D.Double(30, 30, 100, 60));
+	    //for each event we need to draw an Ellipse
+	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	    while (iterator.hasNext()) {
+		Event event = iterator.next().getKey();
+		Ellipse2D.Double item = new Ellipse2D.Double(event.getX(), event.getY(), 100, 60);
+		addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+			if (item.contains(e.getX(), e.getY()))
+			    System.out.println("You just clicked event " + event.getName());
+		    }
+		});
+		g2.draw(item);
+	    }
+	    
 	}
+	
+	//mouselistener events
+	public void mouseClicked(MouseEvent e) { }
+	public void mouseEntered(MouseEvent e) { }
+	public void mouseExited(MouseEvent e) { }
+	public void mousePressed(MouseEvent e) { }
+	public void mouseReleased(MouseEvent e) { }
+	
+	
     }
 }
 

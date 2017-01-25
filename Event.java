@@ -4,32 +4,41 @@ public class Event {
     String name;
     boolean hasPrior = false;
     Event negation; //an event which is the counter 1 - probability
+    int x, y;
     
     //constructor for event with no prior probability
     public Event(String n) { 
         name = n;
         //make assumption that each event forces the creation of it's negation
         negation = new Event("!"+n, this); // !<Event> produces the negation
+        x = 30;
+        y = 30;
     }
     
     //constructor for negation
     public Event(String n, Event neg) {
         name = n;
         negation = neg;
+        x = 30;
+        y = 30;
     }
 
     //constructor for event with prior probability
     public Event(String n, float prob) {
         //if the probability is not between 0 and 1, then it is not a probability
         if (prob < 0 || prob > 1) {
-            System.out.println(n + " can not have a probability outside of [0-1], removed prior probability");
-            name = n;
-            negation = new Event("!"+n, this);
+	    System.out.println(n + " can not have a probability outside of [0-1], removed prior probability");
+	    name = n;
+	    negation = new Event("!"+n, this);
+	    x = 30;
+	    y = 30;
         } else {
-            name = n;
+	    name = n;
 	    probability = prob;
 	    hasPrior = true;
-            negation = new Event("!"+n, 1.0f-prob, this); //needs a different
+	    negation = new Event("!"+n, 1.0f-prob, this); //needs a different
+	    x = 30;
+	    y = 30;
         }
     }
 
@@ -54,4 +63,6 @@ public class Event {
     public boolean equals(Event A) { return A.getName().equals(name); }
     public float getProb() { return probability; }
     public Event not() { return negation; }
+    public int getX() { return x; }
+    public int getY() { return y; }
 }
