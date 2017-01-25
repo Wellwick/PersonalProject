@@ -15,6 +15,7 @@ import java.util.Scanner; //temporary user input
 //everything needed for visual element
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Ellipse2D;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
@@ -109,7 +110,8 @@ public class Network implements ActionListener {
     
     //get the content pane -- currently empty
     private Container getContentPane() {
-	return new Container();
+	DrawPanel dp = new DrawPanel();
+	return dp;
     }
     
     //catches action events from the menu
@@ -605,6 +607,22 @@ public class Network implements ActionListener {
 	}
 	return e;
     }
+    
+    private class DrawPanel extends JPanel {
+	public DrawPanel() {
+	    super();
+	}
+	
+	//override the paint method
+	@Override
+	public void paintComponent(Graphics g) {
+	    Graphics2D g2 = (Graphics2D) g;
+	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	    g2.setPaint(Color.black);
+	    g2.draw(new Ellipse2D.Double(30, 30, 100, 60));
+	}
+    }
 }
 
 class UnexpectedCharacterException extends IOException { }
+
