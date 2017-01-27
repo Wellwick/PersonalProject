@@ -32,13 +32,17 @@ public class Network implements ActionListener {
     //this class contains a network of Events linked by Probs
     //in order to better traverse graph, construct probabilities in adjacency list
     HashMap<Event, LinkedList<Prob>> probabilities;
-	
+    DrawPanel dp;
+    JFrame frame;
+    
     public Network() {
 	//means we are started with a empty network
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
+	makeGUI();
     }
 
     public Network(String filename) {
+	makeGUI();
 	load(filename);
     }
     
@@ -47,12 +51,10 @@ public class Network implements ActionListener {
 	    if (args[0].equals("-l") && args.length > 1) {
 		//load in from the file specified
 		Network net = new Network(args[1]);
-		net.makeGUI();
 		net.scanUserInput();
 	    } else if (args[0].equals("-n")) {
 		//allow user to create a new thing
 		Network net = new Network();
-		net.makeGUI();
 		net.scanUserInput();
 	    } else {
 		System.out.println("To load an existing file use -l <FILENAME>");
@@ -61,10 +63,9 @@ public class Network implements ActionListener {
 	} else {
 	    //let's create a network for demonstration reasons
 	    Network net = new Network("DEFAULT.bys");
-	    net.makeGUI();
 	    net.showConnections();
 	    net.findProbability("D");
-	    net.findProbability("G");
+	    //net.findProbability("G");
 	    net.findProbability("E");
 	    net.scanUserInput();
 	}
@@ -72,7 +73,7 @@ public class Network implements ActionListener {
     
     //create and display the GUI
     private void makeGUI() {
-	JFrame frame = new JFrame("Bayesian Network");
+	frame = new JFrame("Bayesian Network");
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	frame.setJMenuBar(getMenuBar());
@@ -99,7 +100,11 @@ public class Network implements ActionListener {
 	menuItem.addActionListener(this);
 	menu.add(menuItem);
 	
-	menuItem = new JMenuItem("Load Network");
+	menuItem = new JMenuItem("Load");
+	menuItem.addActionListener(this);
+	menu.add(menuItem);
+
+	menuItem = new JMenuItem("Save");
 	menuItem.addActionListener(this);
 	menu.add(menuItem);
 	
@@ -112,7 +117,7 @@ public class Network implements ActionListener {
     
     //get the content pane -- currently empty
     private Container getContentPane() {
-	DrawPanel dp = new DrawPanel();
+	dp = new DrawPanel();
 	return dp;
     }
     
@@ -124,9 +129,22 @@ public class Network implements ActionListener {
 	    //make a new network
 	    System.out.println("Making a new network");
 	    break;
-	case "Load Network":
+	case "Load":
 	    //load a previous network
 	    System.out.println("Loading a network");
+	    FileDialog fd = new FileDialog(frame, "Choose a file", FileDialog.LOAD);
+	    fd.setDirectory(".");
+	    fd.setFilenameFilter((dir, name) -> name.endsWith(".bys")); //requires Java 8 
+	    fd.setVisible(true);
+	    String filename = fd.getFile();
+	    if (filename == null)
+		System.out.println("Load was cancelled");
+	    else
+		load(filename);
+	    break;
+	case "Save":
+	    //load a previous network
+	    System.out.println("Saving network");
 	    break;
 	case "Quit":
 	    System.out.println("Quitting");
@@ -364,6 +382,7 @@ public class Network implements ActionListener {
 	} finally {
 	    try { if (is != null) is.close(); } catch (IOException e) { }
 	}
+	makeGUI();
     }
     
     //method to save the file, returns true on success
