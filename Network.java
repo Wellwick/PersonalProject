@@ -82,7 +82,7 @@ public class Network implements ActionListener {
 
 	frame.setSize(1280, 720);
 	frame.setVisible(true);
-        
+	
     }
     
     //making the menu bar
@@ -186,6 +186,7 @@ public class Network implements ActionListener {
 		    String yPos = pos.substring(pos.indexOf(' ')+1);
 		    int y = Integer.parseInt(yPos.substring(0,yPos.indexOf(' ')));
 		    if (addEvent(new Event(event, x, y))) changes = true;
+		    dp.updateUI();
 		    break;
 		case "nep": //new event with probability
 		    event = parse.substring(parse.indexOf('\"')+1);
@@ -197,6 +198,7 @@ public class Network implements ActionListener {
 		    y = Integer.parseInt(extra.substring(0, extra.indexOf(' ')));
 		    event = event.substring(0, event.indexOf('\"'));
 		    if (addEvent(new Event(event, prob, x, y))) changes = true;
+		    dp.updateUI();
 		    break;
 		case "ncp":
 		    event = parse.substring(parse.indexOf('\"')+1);
@@ -207,6 +209,7 @@ public class Network implements ActionListener {
 		    event = event.substring(0, event.indexOf('\"'));
 		    condEvent = condEvent.substring(0, condEvent.indexOf('\"'));
 		    if (addConditionalProbability(event, condEvent, prob)) changes = true;
+		    dp.updateUI();
 		    break;
 		case "list":
 		    showConnections();
@@ -383,7 +386,7 @@ public class Network implements ActionListener {
 	} finally {
 	    try { if (is != null) is.close(); } catch (IOException e) { }
 	}
-	dp.revalidate();
+	dp.updateUI();
     }
     
     //method to save the file, returns true on success
@@ -454,7 +457,7 @@ public class Network implements ActionListener {
 			os.write('#');
 			seperator = true;
 		    } else {
-                        os.write((byte)'/');
+			os.write((byte)'/');
 		    } 
 		    Prob condProb = iter.next();
 		    writeEvent(condProb.getEvent().getName(), os);
@@ -568,7 +571,7 @@ public class Network implements ActionListener {
 					    + (prob2.getProb() * prob), true);
 				} else {
 				    B.setProb((prob1.getProb() * prob)
-					  + (prob2.getProb() * (1.0f - prob)), true);
+					+ (prob2.getProb() * (1.0f - prob)), true);
 				}
 				return B.getProb();
 			    }
@@ -704,10 +707,10 @@ public class Network implements ActionListener {
 		//now have to step through and display each showConnections
 		Iterator<Prob> probs = entry.getValue().descendingIterator();
 		while (probs.hasNext()) {
-                    Prob prob = probs.next();
-                    Event cond = prob.getConditional();
-                    Event next = prob.getEvent();
-                    g2.draw(new Line2D.Double(cond.getX()+100, cond.getY()+30, next.getX(), next.getY()+30));
+		    Prob prob = probs.next();
+		    Event cond = prob.getConditional();
+		    Event next = prob.getEvent();
+		    g2.draw(new Line2D.Double(cond.getX()+100, cond.getY()+30, next.getX(), next.getY()+30));
 		}
 		
 	    }
@@ -718,13 +721,13 @@ public class Network implements ActionListener {
 	public void mouseClicked(MouseEvent e) {
 	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	    while (iterator.hasNext()) {
-                Event event = iterator.next().getKey();
-                if (event.getEllipse().contains(e.getX(), e.getY())) {
-                    System.out.println("You just clicked event " + event.getName());
-                    if (event.hasPrior()) {
-                        System.out.println(event.getName() + " has probability " + event.getProb());
-                    }
-                }
+		Event event = iterator.next().getKey();
+		if (event.getEllipse().contains(e.getX(), e.getY())) {
+		    System.out.println("You just clicked event " + event.getName());
+		    if (event.hasPrior()) {
+			System.out.println(event.getName() + " has probability " + event.getProb());
+		    }
+		}
 	    }
 	}
 	public void mouseEntered(MouseEvent e) { }
