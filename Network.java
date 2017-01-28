@@ -39,6 +39,7 @@ public class Network implements ActionListener {
 	//means we are started with a empty network
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
 	makeGUI();
+	frame.setContentPane(getContentPane());
     }
 
     public Network(String filename) {
@@ -382,7 +383,7 @@ public class Network implements ActionListener {
 	} finally {
 	    try { if (is != null) is.close(); } catch (IOException e) { }
 	}
-	makeGUI();
+	dp.revalidate();
     }
     
     //method to save the file, returns true on success
@@ -674,9 +675,11 @@ public class Network implements ActionListener {
 	return e;
     }
     
-    private class DrawPanel extends JPanel {
+    private class DrawPanel extends JPanel implements MouseListener {
+	
 	public DrawPanel() {
 	    super();
+	    addMouseListener(this);
 	}
 	
 	//override the paint method
@@ -690,18 +693,7 @@ public class Network implements ActionListener {
 	    while (iterator.hasNext()) {
 		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
 		Event event = entry.getKey();
-		Ellipse2D.Double item = new Ellipse2D.Double(event.getX(), event.getY(), 100, 60);
-		addMouseListener(new MouseAdapter() {
-		    @Override
-		    public void mouseClicked(MouseEvent e) {
-			if (item.contains(e.getX(), e.getY())) {
-			    System.out.println("You just clicked event " + event.getName());
-			    if (event.hasPrior()) {
-                                System.out.println(event.getName() + " has probability " + event.getProb());
-			    }
-                        }
-		    }
-		});
+		Ellipse2D.Double item = event.getEllipse();
 		g2.draw(item);
 		String name = event.getName();
 		//need equal space either side on x
@@ -721,6 +713,24 @@ public class Network implements ActionListener {
 	    }
 	    
 	}
+	
+	
+	public void mouseClicked(MouseEvent e) {
+	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	    while (iterator.hasNext()) {
+                Event event = iterator.next().getKey();
+                if (event.getEllipse().contains(e.getX(), e.getY())) {
+                    System.out.println("You just clicked event " + event.getName());
+                    if (event.hasPrior()) {
+                        System.out.println(event.getName() + " has probability " + event.getProb());
+                    }
+                }
+	    }
+	}
+	public void mouseEntered(MouseEvent e) { }
+	public void mouseExited(MouseEvent e) { }
+	public void mouseReleased(MouseEvent e) { }
+	public void mousePressed(MouseEvent e) { }
 	
     }
 }

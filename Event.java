@@ -1,3 +1,5 @@
+import java.awt.geom.Ellipse2D;
+
 //need a way to demonstrate that an event has a probability of not occuring
 public class Event {
     float probability;
@@ -5,6 +7,7 @@ public class Event {
     boolean hasPrior = false;
     Event negation; //an event which is the counter 1 - probability
     int x, y;
+    Ellipse2D.Double ellipse;
     
     //constructor for event with no prior probability
     public Event(String n, int px, int py) { 
@@ -13,6 +16,7 @@ public class Event {
         negation = new Event("!"+n, this, px, py); // !<Event> produces the negation
         x = px;
         y = py;
+        setEllipse();
     }
     
     //constructor for negation
@@ -21,6 +25,7 @@ public class Event {
         negation = neg;
         x = px;
         y = py;
+        setEllipse();
     }
 
     //constructor for event with prior probability
@@ -32,6 +37,7 @@ public class Event {
 	    negation = new Event("!"+n, this, px, py);
 	    x = px;
 	    y = py;
+	    setEllipse();
         } else {
 	    name = n;
 	    probability = prob;
@@ -39,6 +45,7 @@ public class Event {
 	    negation = new Event("!"+n, 1.0f-prob, this, px, py); //needs a different
 	    x = px;
 	    y = py;
+            setEllipse();
         }
     }
 
@@ -50,6 +57,7 @@ public class Event {
         negation = neg;
         x = px;
         y = py;
+        setEllipse();
     }
     
     //setting the probability for 
@@ -60,6 +68,10 @@ public class Event {
 	    negation.setProb(1.0f-prob, false);
     }
     
+    private void setEllipse() { 
+        ellipse = new Ellipse2D.Double(x, y, 100, 60);
+    }
+    
     public String getName() { return name; }
     public boolean hasPrior() { return hasPrior; }
     public boolean equals(Event A) { return A.getName().equals(name); }
@@ -67,4 +79,5 @@ public class Event {
     public Event not() { return negation; }
     public int getX() { return x; }
     public int getY() { return y; }
+    public Ellipse2D.Double getEllipse() { return ellipse; }
 }
