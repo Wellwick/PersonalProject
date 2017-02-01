@@ -30,6 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 public class Network implements ActionListener {
     //this class contains a network of Events linked by Probs
@@ -691,6 +692,7 @@ public class Network implements ActionListener {
 	//override the paint method
 	@Override
 	public void paintComponent(Graphics g) {
+	    super.paintComponent(g);
 	    Graphics2D g2 = (Graphics2D) g;
 	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	    g2.setPaint(Color.black);
@@ -746,19 +748,55 @@ public class Network implements ActionListener {
 		JFrame eventFrame = new JFrame("Add new event");
 		JPanel eventPanel = new JPanel();
 		JLabel eventNameLabel = new JLabel("Event Name: ");
-		JTextField eventName = new JTextField(20);
+		JTextField eventName = new JTextField(15);
+		JLabel eventProbabilityLabel = new JLabel("Probability (optional): ");
+		JTextField eventProbability = new JTextField(10);
 		JButton addEvent = new JButton("Add Event");
 		
 		eventFrame.setContentPane(eventPanel);
 		eventFrame.setLocation(e.getX(), e.getY());
-		eventFrame.setSize(300, 100);
+		eventFrame.setSize(350, 100);
 		eventFrame.setVisible(true);
 		
-		eventName.setBounds(0, 45, 100, 25);
-		addEvent.setBounds(150, 45, 60, 25);
+		eventNameLabel.setBounds(0, 20, 10, 25);
+		eventName.setBounds(30, 20, 100, 25);
+		eventProbabilityLabel.setBounds(0, 60, 10, 25);
+		eventProbability.setBounds(30, 60, 100, 25);
+		addEvent.setBounds(150, 80, 60, 25);
 		
+		eventPanel.add(eventNameLabel);
 		eventPanel.add(eventName);
+		eventPanel.add(eventProbabilityLabel);
+		eventPanel.add(eventProbability);
 		eventPanel.add(addEvent);
+		
+		addEvent.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ae) {
+			if (eventName.getText().equals("")) {
+			    //need to make sure that there is an event name
+			    JOptionPane.showMessageDialog(null, "The event name can not be empty");
+			} else if (!eventProbability.getText().equals("")) {
+			    try {
+				float prob = Float.parseFloat(eventProbability.getText());
+				if (prob > 1 || prob < 0)
+				    JOptionPane.showMessageDialog(null, "Probability must fall within 0-1");
+				else {
+				    //time to add the event
+				    addEvent(new Event(eventName.getText(), prob, e.getX()-50, e.getY()-30));
+				    dp.updateUI();
+				    eventFrame.dispatchEvent(new WindowEvent(eventFrame, WindowEvent.WINDOW_CLOSING));
+				}
+			    } catch (NumberFormatException nf) {
+				JOptionPane.showMessageDialog(null, "The probability was not a number");
+			    } 
+			} else {
+			    //add a non probability event
+			    addEvent(new Event(eventName.getText(), e.getX()-50, e.getY()-30));
+			    dp.updateUI();
+			    eventFrame.dispatchEvent(new WindowEvent(eventFrame, WindowEvent.WINDOW_CLOSING));
+			} 
+		    }
+		});
 	    }
 	}
 	public void mouseEntered(MouseEvent e) { }
