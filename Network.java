@@ -27,6 +27,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JFrame;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 
 public class Network implements ActionListener {
     //this class contains a network of Events linked by Probs
@@ -719,15 +722,43 @@ public class Network implements ActionListener {
 	
 	
 	public void mouseClicked(MouseEvent e) {
+	    boolean eventSelected = false;
+	    //make sure a newly generated event will not intersect an existing one!
+	    boolean intersection = false;
+	    Ellipse2D.Double newEllipse = new Ellipse2D.Double(e.getX()-50, e.getY()-30, 100, 60);
 	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	    while (iterator.hasNext()) {
 		Event event = iterator.next().getKey();
 		if (event.getEllipse().contains(e.getX(), e.getY())) {
+		    eventSelected = true;
+		    intersection = true;
 		    System.out.println("You just clicked event " + event.getName());
 		    if (event.hasPrior()) {
 			System.out.println(event.getName() + " has probability " + event.getProb());
 		    }
 		}
+		if (!eventSelected && event.getEllipse().intersects(e.getX()-50, e.getY()-30, 100, 60))
+		    intersection = true;
+	    }
+	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
+	    if (!eventSelected && !intersection) {
+		//generate a new frame
+		JFrame eventFrame = new JFrame("Add new event");
+		JPanel eventPanel = new JPanel();
+		JLabel eventNameLabel = new JLabel("Event Name: ");
+		JTextField eventName = new JTextField(20);
+		JButton addEvent = new JButton("Add Event");
+		
+		eventFrame.setContentPane(eventPanel);
+		eventFrame.setLocation(e.getX(), e.getY());
+		eventFrame.setSize(300, 100);
+		eventFrame.setVisible(true);
+		
+		eventName.setBounds(0, 45, 100, 25);
+		addEvent.setBounds(150, 45, 60, 25);
+		
+		eventPanel.add(eventName);
+		eventPanel.add(addEvent);
 	    }
 	}
 	public void mouseEntered(MouseEvent e) { }
