@@ -72,6 +72,7 @@ public class Network implements ActionListener {
 	    net.findProbability("D");
 	    //net.findProbability("G");
 	    net.findProbability("E");
+	    net.findProbability("F", "!I");
 	    net.scanUserInput();
 	}
     }
@@ -133,6 +134,7 @@ public class Network implements ActionListener {
 	case "New Network":
 	    //make a new network
 	    System.out.println("Making a new network");
+	    load(null);
 	    break;
 	case "Load":
 	    //load a previous network
@@ -264,6 +266,11 @@ public class Network implements ActionListener {
 	//generate events
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
+	//null can be passed to load to begin a new network
+	if (filename == null) {
+	    dp.updateUI();
+	    return;
+	}
 	FileInputStream is = null;
 	try {
 	    //read in from the file
@@ -532,11 +539,39 @@ public class Network implements ActionListener {
     }
     
     //calculate P(B|A)
-    public void calculateProbability(Event A, Event B) {
-	//need to look for A having prior probability
+    public float calculateProbability(Event A, Event B) {
+	/**
+	*** This is calculated by the formula
+	*** P(B|A) = P(AnB)/P(A) = P(A|B)*P(B) / (P(A|B)*P(B) + P(A|!B)*P(!B))
+	*** This may require forward checking
+	*** We should initially check to see if the conditional probability already exists
+	**/
+	//may be a trivial case
+	if (A.equals(B)) return 1.0f;
+	else if (A.equals(B.not())) return 0.0f;
 	
-	
-	//find B as a resultant in conditional probability listing
+	//store entry for A if we arrive at it
+	boolean otherEventChecked = false;
+	Map.Entry<Event, LinkedList<Prob>> entryA;
+	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	while (iterator.hasNext()) {
+	    Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+	    if (entry.getKey().equals(A) || entry.getKey().equals(A.not())) {
+		entryA = entry;
+		if (otherEventChecked) break;
+		else otherEventChecked = true;
+	    } else if (entry.getKey().equals(B) || entry.getKey().equals(B.not())) {
+		Iterator<Prob> iter = entry.getValue().descendingIterator();
+		while (iter.hasNext()) {
+		    Prob prob = iter.next();
+		    if (prob.getEvent().equals(B) && prob.getConditional().equals(A))
+			return prob.getProb();
+		    else if (prob.getEvent().equals(B.not()) && prob.getConditional().equals(A))
+			return 1.0f - prob.getProb();
+		}
+	    } 
+	}
+	return -1;
     }
     
     //calculate P(A)
@@ -592,6 +627,7 @@ public class Network implements ActionListener {
 	Event event = findEvent(eventName);
 	if (event.hasPrior()) {
 	    System.out.println(event.getName() + " has probability " + event.getProb());
+	    return true;
 	}
 	System.out.println("Calculating probability for " + event.getName());
 	float prob = calculateProbability(event);
@@ -603,6 +639,21 @@ public class Network implements ActionListener {
 		    + " is " + prob);
 	    return true;
 	}
+    }
+    
+    public boolean findProbability(String eventA, String eventB) {
+	Event A = findEvent(eventA);
+	Event B = findEvent(eventB);
+	
+	float prob = calculateProbability(A, B);
+	if (prob == -1) {
+	    System.out.println("Probability incalculable");
+	    return false;
+	} else {
+	    System.out.println("The probability of " + B.getName() + "|" + A.getName()
+		    + " is " + prob);
+	    return true;
+	} 
     }
 
     private boolean addEvent(Event e) {
