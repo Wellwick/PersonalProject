@@ -701,6 +701,10 @@ public class Network implements ActionListener {
 	    while (iterator.hasNext()) {
 		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
 		Event event = entry.getKey();
+		if (event.getSelected()) //set the colour to red
+		    g2.setPaint(Color.red);
+		else
+		    g2.setPaint(Color.black);
 		Ellipse2D.Double item = event.getEllipse();
 		g2.draw(item);
 		String name = event.getName();
@@ -735,13 +739,16 @@ public class Network implements ActionListener {
 		    eventSelected = true;
 		    intersection = true;
 		    System.out.println("You just clicked event " + event.getName());
+		    event.setSelected(true);
 		    if (event.hasPrior()) {
 			System.out.println(event.getName() + " has probability " + event.getProb());
 		    }
-		}
+		} else
+		    event.setSelected(false);
 		if (!eventSelected && event.getEllipse().intersects(e.getX()-50, e.getY()-30, 100, 60))
 		    intersection = true;
 	    }
+	    dp.updateUI();
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
 	    if (!eventSelected && !intersection) {
 		//generate a new frame

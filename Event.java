@@ -5,6 +5,7 @@ public class Event {
     float probability;
     String name;
     boolean hasPrior = false;
+    boolean selected = false; //for when the event is clicked and must appear a different colour
     Event negation; //an event which is the counter 1 - probability
     int x, y;
     Ellipse2D.Double ellipse;
@@ -80,4 +81,6 @@ public class Event {
     public int getX() { return x; }
     public int getY() { return y; }
     public Ellipse2D.Double getEllipse() { return ellipse; }
+    public void setSelected(boolean select) { selected = select; }
+    public boolean getSelected() { return selected; }
 }
