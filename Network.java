@@ -23,6 +23,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
 import javax.swing.KeyStroke;
 
+import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
@@ -38,6 +39,7 @@ public class Network implements ActionListener {
     HashMap<Event, LinkedList<Prob>> probabilities;
     DrawPanel dp;
     JFrame frame;
+    boolean shiftDown = false;
     
     public Network() {
 	//means we are started with a empty network
@@ -87,7 +89,6 @@ public class Network implements ActionListener {
 
 	frame.setSize(1280, 720);
 	frame.setVisible(true);
-	
     }
     
     //making the menu bar
@@ -733,11 +734,29 @@ public class Network implements ActionListener {
 	return e;
     }
     
-    private class DrawPanel extends JPanel implements MouseListener {
+    private class DrawPanel extends JPanel implements MouseListener, MouseMotionListener {
+	
+	int mouseX = 0;
+	int mouseY = 0;
 	
 	public DrawPanel() {
 	    super();
 	    addMouseListener(this);
+	    addMouseMotionListener(this);
+	
+	    getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "pressed");
+	    getInputMap().put(KeyStroke.getKeyStroke("released SPACE"), "released");
+	    getActionMap().put("pressed", new AbstractAction() {
+		    public void actionPerformed(ActionEvent e) {
+			shiftDown = true;
+			updateUI();
+		    }
+	    });
+	    getActionMap().put("released", new AbstractAction() {
+		    public void actionPerformed(ActionEvent e) {
+			shiftDown = false;
+		    }
+	    });
 	}
 	
 	//override the paint method
@@ -752,9 +771,12 @@ public class Network implements ActionListener {
 	    while (iterator.hasNext()) {
 		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
 		Event event = entry.getKey();
-		if (event.getSelected()) //set the colour to red
+		if (event.getSelected()) { //set the colour to red
 		    g2.setPaint(Color.red);
-		else
+		    if (shiftDown) {
+			g2.draw(new Line2D.Double(event.getX()+100, event.getY()+30, mouseX, mouseY));
+		    }
+		} else
 		    g2.setPaint(Color.black);
 		Ellipse2D.Double item = event.getEllipse();
 		g2.draw(item);
@@ -861,6 +883,15 @@ public class Network implements ActionListener {
 	public void mouseExited(MouseEvent e) { }
 	public void mouseReleased(MouseEvent e) { }
 	public void mousePressed(MouseEvent e) { }
+	
+	public void mouseMoved(MouseEvent e) {
+	    if (shiftDown) {
+		updateUI();
+		mouseX = e.getX();
+		mouseY = e.getY();
+	    }
+	}
+	public void mouseDragged(MouseEvent e) { } 
 	
     }
 }
