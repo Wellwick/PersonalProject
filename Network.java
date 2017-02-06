@@ -816,6 +816,7 @@ public class Network implements ActionListener {
 	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	    Event cond = null;
 	    Event connect = null;
+	    Map.Entry<Event, LinkedList<Prob>> ent = null;
 	    while (iterator.hasNext()) {
 		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
 		Event event = entry.getKey();
@@ -824,6 +825,7 @@ public class Network implements ActionListener {
 		    if (eventSelected && shiftDown && !event.getSelected()) {
 			//time to try and add a new event
 			connect = event;
+			ent = entry;
 		    } else {
 			System.out.println("You just clicked event " + event.getName());
 			event.setSelected(true);
@@ -855,7 +857,7 @@ public class Network implements ActionListener {
 		JPanel probPanel = new JPanel();
 		JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
 		JTextField prob = new JTextField(5);
-		JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|!"+cond.getName()+") =");
+		JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|"+cond.not().getName()+") =");
 		JTextField counterProb = new JTextField(5);
 		JButton addProb = new JButton("Add Conditional Probability");
 		
@@ -870,6 +872,21 @@ public class Network implements ActionListener {
 		probPanel.add(counterProb);
 		probPanel.add(addProb);
 		
+		//check if these already exist in some form
+		Prob priorA = null;
+		Prob priorB = null;
+		Iterator<Prob> iter = ent.getValue().descendingIterator();
+		while (iter.hasNext()) {
+		    Prob p = iter.next();
+		    if (p.getEvent().equals(connect) && p.getConditional().equals(cond)) {
+			//fill in with the existing value
+			priorA = p;
+			prob.setText("" + p.getProb());
+		    } else if (p.getEvent().equals(connect) && p.getConditional().equals(cond.not())) {
+			priorB = p;
+			counterProb.setText("" + p.getProb());
+		    }
+		}
 	    }
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
 	    if (!eventSelected && !intersection) {
