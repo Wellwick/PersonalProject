@@ -854,15 +854,21 @@ public class Network implements ActionListener {
 		});
 		JPanel probPanel = new JPanel();
 		JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
-		JTextField prob = new JTextField(10);
+		JTextField prob = new JTextField(5);
 		JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|!"+cond.getName()+") =");
-		JTextField counterProb = new JTextField(10);
-		JButton addEvent = new JButton("Add Event");
+		JTextField counterProb = new JTextField(5);
+		JButton addProb = new JButton("Add Conditional Probability");
 		
 		probFrame.setContentPane(probPanel);
 		probFrame.setLocation(e.getX(), e.getY());
-		probFrame.setSize(250, 100);
+		probFrame.setSize(350, 100);
 		probFrame.setVisible(true);
+		
+		probPanel.add(probLabel);
+		probPanel.add(prob);
+		probPanel.add(counterProbLabel);
+		probPanel.add(counterProb);
+		probPanel.add(addProb);
 		
 	    }
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
