@@ -39,7 +39,6 @@ public class Network implements ActionListener {
     HashMap<Event, LinkedList<Prob>> probabilities;
     DrawPanel dp;
     JFrame frame;
-    boolean shiftDown = false;
     
     public Network() {
 	//means we are started with a empty network
@@ -738,6 +737,9 @@ public class Network implements ActionListener {
 	
 	int mouseX = 0;
 	int mouseY = 0;
+	boolean eventSelected = false;
+	boolean shiftDown = false;
+	boolean addingItem = false;
 	
 	public DrawPanel() {
 	    super();
@@ -755,6 +757,7 @@ public class Network implements ActionListener {
 	    getActionMap().put("released", new AbstractAction() {
 		    public void actionPerformed(ActionEvent e) {
 			shiftDown = false;
+			updateUI();
 		    }
 	    });
 	}
@@ -801,31 +804,82 @@ public class Network implements ActionListener {
 	
 	
 	public void mouseClicked(MouseEvent e) {
-	    boolean eventSelected = false;
+	    if (addingItem) return;
+	    boolean addingConditional = false;
+	    if (eventSelected && shiftDown) {
+		//may be dealing with adding a new conditional event
+		addingConditional = true;
+	    } else eventSelected = false;
 	    //make sure a newly generated event will not intersect an existing one!
 	    boolean intersection = false;
 	    Ellipse2D.Double newEllipse = new Ellipse2D.Double(e.getX()-50, e.getY()-30, 100, 60);
 	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	    Event cond = null;
+	    Event connect = null;
 	    while (iterator.hasNext()) {
-		Event event = iterator.next().getKey();
+		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		Event event = entry.getKey();
+		if (event.getSelected()) cond = event; //in case conditional event is added
 		if (event.getEllipse().contains(e.getX(), e.getY())) {
+		    if (eventSelected && shiftDown && !event.getSelected()) {
+			//time to try and add a new event
+			connect = event;
+		    } else {
+			System.out.println("You just clicked event " + event.getName());
+			event.setSelected(true);
+			if (event.hasPrior()) {
+			    System.out.println(event.getName() + " has probability " + event.getProb());
+			}
+		    } 
 		    eventSelected = true;
 		    intersection = true;
-		    System.out.println("You just clicked event " + event.getName());
-		    event.setSelected(true);
-		    if (event.hasPrior()) {
-			System.out.println(event.getName() + " has probability " + event.getProb());
-		    }
 		} else
 		    event.setSelected(false);
 		if (!eventSelected && event.getEllipse().intersects(e.getX()-50, e.getY()-30, 100, 60))
 		    intersection = true;
 	    }
 	    dp.updateUI();
+	    if (connect != null && cond != null) {
+		addingItem = true;
+		//generate a new frame
+		JFrame probFrame = new JFrame("Add new conditional probability");
+		probFrame.setAlwaysOnTop(true);
+		//make sure addingItem is changed when the JFrame closes
+		probFrame.addWindowListener(new WindowAdapter() {
+		    @Override
+		    public void windowClosing(WindowEvent windowEvent) {
+			addingItem = false;
+			shiftDown = false;
+		    }
+		});
+		JPanel probPanel = new JPanel();
+		JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
+		JTextField prob = new JTextField(10);
+		JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|!"+cond.getName()+") =");
+		JTextField counterProb = new JTextField(10);
+		JButton addEvent = new JButton("Add Event");
+		
+		probFrame.setContentPane(probPanel);
+		probFrame.setLocation(e.getX(), e.getY());
+		probFrame.setSize(250, 100);
+		probFrame.setVisible(true);
+		
+	    }
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
 	    if (!eventSelected && !intersection) {
+		addingItem = true;
 		//generate a new frame
 		JFrame eventFrame = new JFrame("Add new event");
+		eventFrame.setAlwaysOnTop(true);
+		//make sure addingItem is changed when the JFrame closes
+		eventFrame.addWindowListener(new WindowAdapter() {
+		    @Override
+		    public void windowClosing(WindowEvent windowEvent) {
+			addingItem = false;
+			shiftDown = false;
+		    }
+		});
+		
 		JPanel eventPanel = new JPanel();
 		JLabel eventNameLabel = new JLabel("Event Name: ");
 		JTextField eventName = new JTextField(15);
@@ -885,10 +939,10 @@ public class Network implements ActionListener {
 	public void mousePressed(MouseEvent e) { }
 	
 	public void mouseMoved(MouseEvent e) {
+	    mouseX = e.getX();
+	    mouseY = e.getY();
 	    if (shiftDown) {
 		updateUI();
-		mouseX = e.getX();
-		mouseY = e.getY();
 	    }
 	}
 	public void mouseDragged(MouseEvent e) { } 
