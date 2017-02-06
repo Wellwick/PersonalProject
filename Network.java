@@ -706,7 +706,24 @@ public class Network implements ActionListener {
 	System.err.println("Event '" + B + "' doesn't exist");
 	return false;
     }
-
+    
+    private boolean removeConditionalProb(Prob prob) {
+	if (prob == null) return true;
+	else {
+	    //needs to iterate through and remove
+	    Event event = prob.getEvent();
+	    Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
+	    while (iterator.hasNext()) {
+		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		if (entry.getKey().equals(event)) {
+		    LinkedList<Prob> probs = entry.getValue();
+		    return probs.remove(prob);
+		}
+	    }
+	}
+	return false;
+    }
+    
     private Event findEvent(String name) {
 	//traverses event list to find the event
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
@@ -887,6 +904,33 @@ public class Network implements ActionListener {
 			counterProb.setText("" + p.getProb());
 		    }
 		}
+		final Prob pA = priorA;
+		final Prob pB = priorB;
+		final String eventName = connect.getName();
+		final String condName = cond.getName();
+		final String condNotName = cond.not().getName();
+		
+		addProb.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ae) {
+			//allow possibility for both empty so that unwanted conditionals can be removed
+			try {
+			    if (!prob.getText().equals("")) {
+				float probability = Float.parseFloat(prob.getText());
+				addConditionalProbability(eventName, condName, probability);
+			    }
+			    removeConditionalProb(pA);
+			    if (!counterProb.getText().equals("")) {
+				float probability = Float.parseFloat(counterProb.getText());
+				addConditionalProbability(eventName, condNotName, probability);
+			    }
+			    removeConditionalProb(pB);
+			    dp.updateUI();
+			    probFrame.dispatchEvent(new WindowEvent(probFrame, WindowEvent.WINDOW_CLOSING));
+			} catch (NumberFormatException nf) {
+			    JOptionPane.showMessageDialog(null, "The probability was not a number");
+			} 
+		    }
+		});
 	    }
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
 	    if (!eventSelected && !intersection) {
