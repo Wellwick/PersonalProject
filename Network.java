@@ -72,7 +72,7 @@ public class Network implements ActionListener {
 	    net.findProbability("D");
 	    //net.findProbability("G");
 	    net.findProbability("E");
-	    net.findProbability("F", "!I");
+	    net.findProbability("F", "C");
 	    net.scanUserInput();
 	}
     }
