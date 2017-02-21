@@ -16,6 +16,7 @@ import java.util.Scanner; //temporary user input
 //everything needed for visual element
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import javax.swing.JMenu;
@@ -826,20 +827,18 @@ public class Network implements ActionListener {
 			double rotation = Math.atan2(yChange,xChange);
 			String probString = "P("+next.getName()+"|"+cond.getName()+") = "+prob.getProb();
 			int stringLength = fm.stringWidth(probString)/2;
+			AffineTransform orig = g2.getTransform();
 			g2.translate(next.getX() - (xChange/2), next.getY()+30 - (yChange/2));
 			g2.rotate(rotation);
 			if (cond.getName().charAt(0) == '!') {
 			    //go below the line to draw
 			    g2.translate(-stringLength,15);
 			    g2.drawString(probString, 0, 0);
-			    g2.translate(stringLength,-15);
 			} else {
 			    g2.translate(-stringLength,-5);
 			    g2.drawString(probString, 0, 0);
-			    g2.translate(stringLength,5);
 			}
-			g2.rotate(-rotation);
-			g2.translate(-(next.getX() - (xChange/2)), -(next.getY()+30 - (yChange/2)));
+			g2.setTransform(orig);
 		    }
 		}
 		
