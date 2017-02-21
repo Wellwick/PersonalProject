@@ -5,6 +5,7 @@ as such
 A=0.7
 
 !UPDATE! Each event must now have a position, seperated out by a comma
+!UPDATE 2! This is now a binary file, created in the program and then saved
 
 Then to seperate out each event we use the / character
 

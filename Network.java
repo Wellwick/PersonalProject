@@ -142,9 +142,10 @@ public class Network implements ActionListener {
 	    System.out.println("Loading a network");
 	    FileDialog fd = new FileDialog(frame, "Choose a file", FileDialog.LOAD);
 	    fd.setDirectory(".");
-	    fd.setFilenameFilter((dir, name) -> name.endsWith(".bys")); //requires Java 8 
+	    fd.setFilenameFilter((dir, name) -> name.endsWith(".bys")); //requires Java 8
 	    fd.setVisible(true);
 	    String filename = fd.getFile();
+	    //fd.dispatchEvent(new WindowEvent(fd, WindowEvent.WINDOW_CLOSING));
 	    if (filename == null)
 		System.out.println("Load was cancelled");
 	    else
@@ -153,6 +154,18 @@ public class Network implements ActionListener {
 	case "Save":
 	    //load a previous network
 	    System.out.println("Saving network");
+	    frame.setAlwaysOnTop(false);
+	    fd = new FileDialog(frame, "Save Network", FileDialog.SAVE);
+	    fd.setDirectory(".");
+	    fd.setFilenameFilter((dir, name) -> name.endsWith(".bys"));
+	    fd.setVisible(true);
+	    filename = fd.getFile();
+	    //Save dialog makes sure that the file doesn't already exist
+	    
+	    if (filename == null)
+		System.out.println("Save was cancelled");
+	    else
+		save(filename);
 	    break;
 	case "Quit":
 	    System.out.println("Quitting");
@@ -406,10 +419,12 @@ public class Network implements ActionListener {
 	FileOutputStream os = null;
 	try {
 	    //prepare the output stream
+	    /*
 	    File file = new File(filename);
 	    if (file.exists()) {
 		//make sure the user doesn't want to overwrite this file
 		System.out.print("The file " + filename + " already exists. Are you sure you want to replace it y/n ");
+		JOptionPane.showMessageDialog(null, "The file " + filename + " already exists. Are you sure you want to replace it y/n ");
 		Scanner s = new Scanner(System.in);
 		String answer = s.next();
 		System.out.println();
@@ -420,6 +435,7 @@ public class Network implements ActionListener {
 		    return false;
 		}
 	    }
+	    */
 	    os = new FileOutputStream(new File(filename));
 	    
 	    //work through the events first
