@@ -807,10 +807,10 @@ public class Network implements ActionListener {
 		int y = event.getY() + (60/2) + 5;
 		g2.drawString(name, x, y);
 		if (event.getSelected() && event.hasPrior()) {
-                    //print out the probability
-                    String newString = "P("+name+") = "+event.getProb();
-                    int newX = event.getX() + 50 - (fm.stringWidth(newString)/2);
-                    g2.drawString(newString,newX,y-35);
+		    //print out the probability
+		    String newString = "P("+name+") = "+event.getProb();
+		    int newX = event.getX() + 50 - (fm.stringWidth(newString)/2);
+		    g2.drawString(newString,newX,y-35);
 		}
 		//now have to step through and display each showConnections
 		Iterator<Prob> probs = entry.getValue().descendingIterator();
@@ -821,26 +821,25 @@ public class Network implements ActionListener {
 		    g2.draw(new Line2D.Double(cond.getX()+100, cond.getY()+30, next.getX(), next.getY()+30));
 		    //print out info if the event is selected
 		    if (next.getSelected()) {
-                        int yChange = (next.getY()+30) - (cond.getY()+30);
-                        int xChange = (next.getX()) - (cond.getX()+100);
-                        double rotation = Math.atan2(yChange,xChange);
-                        String probString = "P("+next.getName()+"|"+cond.getName()+") = "+prob.getProb();
-                        int stringLength = fm.stringWidth(probString)/2;
-                        g2.translate(next.getX() - (xChange/2), next.getY()+30 - (yChange/2));
-                        g2.rotate(rotation);
-                        if (cond.getName().charAt(0) == '!') {
-                            //go below the line to draw
-                            g2.translate(-stringLength,15);
-                            g2.drawString(probString, 0, 0);
-                            g2.translate(stringLength,-15);
-                        } else {
-                            g2.translate(-stringLength,-5);
-                            g2.drawString(probString, 0, 0);
-                            g2.translate(stringLength,5);
-                            System.out.println("Drew " + probString + " at rotation " + rotation);
-                        }
-                        g2.rotate(-rotation);
-                        g2.translate(-(next.getX() - (xChange/2)), -(next.getY()+30 - (yChange/2)));
+			int yChange = (next.getY()+30) - (cond.getY()+30);
+			int xChange = (next.getX()) - (cond.getX()+100);
+			double rotation = Math.atan2(yChange,xChange);
+			String probString = "P("+next.getName()+"|"+cond.getName()+") = "+prob.getProb();
+			int stringLength = fm.stringWidth(probString)/2;
+			g2.translate(next.getX() - (xChange/2), next.getY()+30 - (yChange/2));
+			g2.rotate(rotation);
+			if (cond.getName().charAt(0) == '!') {
+			    //go below the line to draw
+			    g2.translate(-stringLength,15);
+			    g2.drawString(probString, 0, 0);
+			    g2.translate(stringLength,-15);
+			} else {
+			    g2.translate(-stringLength,-5);
+			    g2.drawString(probString, 0, 0);
+			    g2.translate(stringLength,5);
+			}
+			g2.rotate(-rotation);
+			g2.translate(-(next.getX() - (xChange/2)), -(next.getY()+30 - (yChange/2)));
 		    }
 		}
 		
