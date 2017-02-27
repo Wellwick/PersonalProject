@@ -569,6 +569,7 @@ public class Network implements ActionListener {
 	
 	//store entry for A if we arrive at it
 	boolean otherEventChecked = false;
+	int neededBranches = 0;
 	Map.Entry<Event, LinkedList<Prob>> entryA = null;
 	Map.Entry<Event, LinkedList<Prob>> entryB = null;
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
@@ -576,6 +577,12 @@ public class Network implements ActionListener {
 	    Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
 	    if (entry.getKey().equals(A) || entry.getKey().equals(A.not())) {
 		entryA = entry;
+		Iterator<Prob> iter = entry.getValue().descendingIterator();
+		while (iter.hasNext()) {
+		    Prob prob = iter.next();
+		    if (prob.getConditional().equals(B) || prob.getConditional().equals(B.not()))
+			neededBranches++;
+		}
 		if (otherEventChecked) break;
 		else otherEventChecked = true;
 	    } else if (entry.getKey().equals(B) || entry.getKey().equals(B.not())) {
@@ -593,13 +600,21 @@ public class Network implements ActionListener {
 		else otherEventChecked = true;
 	    } 
 	}
+	if (neededBranches != 2) return -1;
 	if (entryA == null || entryB == null) return -1;
 	//if we reach this point, we can only calculate if we have the correct conditional probabilities
 	float probB = calculateProbability(entryB.getKey());
 	if (probB == -1) return -1;
 	//if we have this need to make sure we have both P(A|B) and P(A|!B)
-	float probA_B = calculateProbability(B, A);
-	float probA_not_B = calculateProbability(B.not(), A);
+	float probA_B;
+	float probA_not_B;
+	try {
+	    probA_B = calculateProbability(B, A);
+	    probA_not_B = calculateProbability(B.not(), A);
+	} catch (StackOverflowError e) {
+	    //means the recursion was unsuccessful
+	    return -1;
+	} 
 	if (probA_B == -1 || probA_not_B == -1) return -1;
 	
 	float prob = (probA_B*probB)/((probA_B*probB)+(probA_not_B*(1-probB)));
@@ -873,7 +888,10 @@ public class Network implements ActionListener {
 		    g2.setPaint(Color.red);
 		    if (shiftDown) {
 			g2.draw(new Line2D.Double(event.getX()+100, event.getY()+30, mouseX, mouseY));
-		    }
+		    } else if (calcConditionals) {
+			g2.setPaint(Color.green);
+			g2.draw(new Line2D.Double(event.getX()+100, event.getY()+30, mouseX, mouseY));
+		    } 
 		} else
 		    g2.setPaint(Color.black);
 		Ellipse2D.Double item = event.getEllipse();
@@ -907,6 +925,8 @@ public class Network implements ActionListener {
 			//make sure rotation doesn't end up upside down
 			if (rotation > Math.PI/2) 
 			    rotation -= Math.PI;
+			if (rotation < -Math.PI/2)
+			    rotation += Math.PI;
 			String probString = "P("+next.getName()+"|"+cond.getName()+") = "+prob.getProb();
 			int stringLength = fm.stringWidth(probString)/2;
 			AffineTransform orig = g2.getTransform();
@@ -932,11 +952,8 @@ public class Network implements ActionListener {
 	public void mouseClicked(MouseEvent e) {
 	    if (calcButton != null) super.remove(calcButton);
 	    if (addingItem) return;
-	    boolean addingConditional = false;
-	    if (eventSelected && shiftDown) {
-		//may be dealing with adding a new conditional event
-		addingConditional = true;
-	    } else eventSelected = false;
+	    if (!calcConditionals && !shiftDown)
+		eventSelected = false;
 	    //make sure a newly generated event will not intersect an existing one!
 	    boolean intersection = false;
 	    Ellipse2D.Double newEllipse = new Ellipse2D.Double(e.getX()-50, e.getY()-30, 100, 60);
@@ -949,7 +966,7 @@ public class Network implements ActionListener {
 		Event event = entry.getKey();
 		if (event.getSelected()) cond = event; //in case conditional event is added
 		if (event.getEllipse().contains(e.getX(), e.getY())) {
-		    if (eventSelected && shiftDown && !event.getSelected()) {
+		    if (eventSelected && (shiftDown || calcConditionals) && !event.getSelected()) {
 			//time to try and add a new event
 			connect = event;
 			ent = entry;
@@ -971,78 +988,88 @@ public class Network implements ActionListener {
 	    }
 	    dp.updateUI();
 	    if (connect != null && cond != null) {
-		addingItem = true;
-		//generate a new frame
-		JFrame probFrame = new JFrame("Add new conditional probability");
-		probFrame.setAlwaysOnTop(true);
-		//make sure addingItem is changed when the JFrame closes
-		probFrame.addWindowListener(new WindowAdapter() {
-		    @Override
-		    public void windowClosing(WindowEvent windowEvent) {
-			addingItem = false;
-			shiftDown = false;
+		if (shiftDown) {
+		    addingItem = true;
+		    //generate a new frame
+		    JFrame probFrame = new JFrame("Add new conditional probability");
+		    probFrame.setAlwaysOnTop(true);
+		    //make sure addingItem is changed when the JFrame closes
+		    probFrame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent windowEvent) {
+			    addingItem = false;
+			    shiftDown = false;
+			}
+		    });
+		    JPanel probPanel = new JPanel();
+		    JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
+		    JTextField prob = new JTextField(5);
+		    JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|"+cond.not().getName()+") =");
+		    JTextField counterProb = new JTextField(5);
+		    JButton addProb = new JButton("Add Conditional Probability");
+		    
+		    probFrame.setContentPane(probPanel);
+		    probFrame.setLocation(e.getX(), e.getY());
+		    probFrame.setSize(350, 100);
+		    probFrame.setVisible(true);
+		    
+		    probPanel.add(probLabel);
+		    probPanel.add(prob);
+		    probPanel.add(counterProbLabel);
+		    probPanel.add(counterProb);
+		    probPanel.add(addProb);
+		    
+		    //check if these already exist in some form
+		    Prob priorA = null;
+		    Prob priorB = null;
+		    Iterator<Prob> iter = ent.getValue().descendingIterator();
+		    while (iter.hasNext()) {
+			Prob p = iter.next();
+			if (p.getEvent().equals(connect) && p.getConditional().equals(cond)) {
+			    //fill in with the existing value
+			    priorA = p;
+			    prob.setText("" + p.getProb());
+			} else if (p.getEvent().equals(connect) && p.getConditional().equals(cond.not())) {
+			    priorB = p;
+			    counterProb.setText("" + p.getProb());
+			}
 		    }
-		});
-		JPanel probPanel = new JPanel();
-		JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
-		JTextField prob = new JTextField(5);
-		JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|"+cond.not().getName()+") =");
-		JTextField counterProb = new JTextField(5);
-		JButton addProb = new JButton("Add Conditional Probability");
-		
-		probFrame.setContentPane(probPanel);
-		probFrame.setLocation(e.getX(), e.getY());
-		probFrame.setSize(350, 100);
-		probFrame.setVisible(true);
-		
-		probPanel.add(probLabel);
-		probPanel.add(prob);
-		probPanel.add(counterProbLabel);
-		probPanel.add(counterProb);
-		probPanel.add(addProb);
-		
-		//check if these already exist in some form
-		Prob priorA = null;
-		Prob priorB = null;
-		Iterator<Prob> iter = ent.getValue().descendingIterator();
-		while (iter.hasNext()) {
-		    Prob p = iter.next();
-		    if (p.getEvent().equals(connect) && p.getConditional().equals(cond)) {
-			//fill in with the existing value
-			priorA = p;
-			prob.setText("" + p.getProb());
-		    } else if (p.getEvent().equals(connect) && p.getConditional().equals(cond.not())) {
-			priorB = p;
-			counterProb.setText("" + p.getProb());
-		    }
+		    final Prob pA = priorA;
+		    final Prob pB = priorB;
+		    final String eventName = connect.getName();
+		    final String condName = cond.getName();
+		    final String condNotName = cond.not().getName();
+		    
+		    addProb.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ae) {
+			    //allow possibility for both empty so that unwanted conditionals can be removed
+			    try {
+				if (!prob.getText().equals("")) {
+				    float probability = Float.parseFloat(prob.getText());
+				    addConditionalProbability(eventName, condName, probability);
+				}
+				removeConditionalProb(pA);
+				if (!counterProb.getText().equals("")) {
+				    float probability = Float.parseFloat(counterProb.getText());
+				    addConditionalProbability(eventName, condNotName, probability);
+				}
+				removeConditionalProb(pB);
+				dp.updateUI();
+				probFrame.dispatchEvent(new WindowEvent(probFrame, WindowEvent.WINDOW_CLOSING));
+			    } catch (NumberFormatException nf) {
+				JOptionPane.showMessageDialog(null, "The probability was not a number");
+			    } 
+			}
+		    });
+		} else {
+		    //we are dealing with calculating conditionals probabilities
+		    cond.setSelected(false);
+		    connect.setSelected(true);
+		    if (!findProbability(cond.getName(), connect.getName())) JOptionPane.showMessageDialog(null, "P("+connect.getName()+"|"+cond.getName()+") was incalculable");
+		    if (!findProbability(cond.not().getName(), connect.getName())) JOptionPane.showMessageDialog(null, "P("+connect.getName()+"|"+cond.not().getName()+") was incalculable");
+		    calcConditionals = false;
+		    updateUI();
 		}
-		final Prob pA = priorA;
-		final Prob pB = priorB;
-		final String eventName = connect.getName();
-		final String condName = cond.getName();
-		final String condNotName = cond.not().getName();
-		
-		addProb.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent ae) {
-			//allow possibility for both empty so that unwanted conditionals can be removed
-			try {
-			    if (!prob.getText().equals("")) {
-				float probability = Float.parseFloat(prob.getText());
-				addConditionalProbability(eventName, condName, probability);
-			    }
-			    removeConditionalProb(pA);
-			    if (!counterProb.getText().equals("")) {
-				float probability = Float.parseFloat(counterProb.getText());
-				addConditionalProbability(eventName, condNotName, probability);
-			    }
-			    removeConditionalProb(pB);
-			    dp.updateUI();
-			    probFrame.dispatchEvent(new WindowEvent(probFrame, WindowEvent.WINDOW_CLOSING));
-			} catch (NumberFormatException nf) {
-			    JOptionPane.showMessageDialog(null, "The probability was not a number");
-			} 
-		    }
-		});
 	    }
 	    //if we haven't found an existing event or intersecting a previous one, we can make a new event
 	    if (!eventSelected && !intersection) {
