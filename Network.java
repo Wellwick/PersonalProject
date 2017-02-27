@@ -668,6 +668,36 @@ public class Network implements ActionListener {
 		}
 	    }
 	    
+	    //also possible to calculate P(B) given P(A), P(A|B) and P(A|!B)
+	    iterator = probabilities.entrySet().iterator();
+	    while (iterator.hasNext()) {
+		Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
+		//have to check through probabilities for universal connection
+		if (entry.getKey().hasPrior()) {
+		    Iterator<Prob> iter = entry.getValue().descendingIterator();
+		    while (iter.hasNext()) {
+			Prob prob1 = iter.next();
+			if ((prob1.getConditional().equals(B) || prob1.getConditional().equals(B.not()))) {
+			    //looking for secondary val
+			    Iterator<Prob> iter2 = iter;
+			    while (iter2.hasNext()) {
+				Prob prob2 = iter2.next();
+				if (prob2.getConditional().equals(prob1.getConditional().not()) && prob1.getEvent().equals(prob2.getEvent())) {
+				    //formula is (P(A) - P(A|!B)) / (P(A|B) - P(A|!B))
+				    if (prob1.getConditional().equals(B))
+					B.setProb(((prob1.getEvent().getProb()) - prob2.getProb()) / (prob1.getProb() - prob2.getProb()), true);
+				    else
+					B.setProb(((prob1.getEvent().getProb()) - prob1.getProb()) / (prob2.getProb() - prob1.getProb()), true);
+				    
+				    return B.getProb();
+				}
+			    }
+			}
+		    }
+		}
+		
+	    }
+	    
 	}
 	return -1;
     }
