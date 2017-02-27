@@ -781,8 +781,8 @@ public class Network implements ActionListener {
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
 	
-	    getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "pressed");
-	    getInputMap().put(KeyStroke.getKeyStroke("released SPACE"), "released");
+	    getInputMap().put(KeyStroke.getKeyStroke("control SPACE"), "pressed");
+	    getInputMap().put(KeyStroke.getKeyStroke("control released SPACE"), "released");
 	    getActionMap().put("pressed", new AbstractAction() {
 		    public void actionPerformed(ActionEvent e) {
 			shiftDown = true;
