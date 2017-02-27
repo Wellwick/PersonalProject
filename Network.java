@@ -74,7 +74,7 @@ public class Network implements ActionListener {
 	    net.findProbability("D");
 	    //net.findProbability("G");
 	    net.findProbability("E");
-	    net.findProbability("F", "C");
+	    net.findProbability("!E", "C");
 	    net.scanUserInput();
 	}
     }
@@ -569,7 +569,8 @@ public class Network implements ActionListener {
 	
 	//store entry for A if we arrive at it
 	boolean otherEventChecked = false;
-	Map.Entry<Event, LinkedList<Prob>> entryA;
+	Map.Entry<Event, LinkedList<Prob>> entryA = null;
+	Map.Entry<Event, LinkedList<Prob>> entryB = null;
 	Iterator<Map.Entry<Event, LinkedList<Prob>>> iterator = probabilities.entrySet().iterator();
 	while (iterator.hasNext()) {
 	    Map.Entry<Event, LinkedList<Prob>> entry = iterator.next();
@@ -586,9 +587,25 @@ public class Network implements ActionListener {
 		    else if (prob.getEvent().equals(B.not()) && prob.getConditional().equals(A))
 			return 1.0f - prob.getProb();
 		}
+		//if we haven't returned, will need to go to the next event
+		entryB = entry;
+		if (otherEventChecked) break;
+		else otherEventChecked = true;
 	    } 
 	}
-	return -1;
+	if (entryA == null || entryB == null) return -1;
+	//if we reach this point, we can only calculate if we have the correct conditional probabilities
+	float probB = calculateProbability(entryB.getKey());
+	if (probB == -1) return -1;
+	//if we have this need to make sure we have both P(A|B) and P(A|!B)
+	float probA_B = calculateProbability(B, A);
+	float probA_not_B = calculateProbability(B.not(), A);
+	if (probA_B == -1 || probA_not_B == -1) return -1;
+	
+	float prob = (probA_B*probB)/((probA_B*probB)+(probA_not_B*(1-probB)));
+	addConditionalProbability(B.getName(), A.getName(), prob);
+	
+	return prob;
     }
     
     //calculate P(A)
@@ -773,6 +790,7 @@ public class Network implements ActionListener {
 	int mouseY = 0;
 	boolean eventSelected = false;
 	boolean shiftDown = false;
+	boolean calcConditionals = false;
 	boolean addingItem = false;
 	JButton calcButton = null;
 	
@@ -795,6 +813,22 @@ public class Network implements ActionListener {
 			updateUI();
 		    }
 	    });
+	    
+	    getInputMap().put(KeyStroke.getKeyStroke("control C"), "pressC");
+	    getInputMap().put(KeyStroke.getKeyStroke("control released C"), "releaseC");
+	    getActionMap().put("pressC", new AbstractAction() {
+		    public void actionPerformed(ActionEvent e) {
+			calcConditionals = true;
+			updateUI();
+		    }
+	    });
+	    getActionMap().put("releaseC", new AbstractAction() {
+		    public void actionPerformed(ActionEvent e) {
+			calcConditionals = false;
+			updateUI();
+		    }
+	    });
+	    
 	}
 	
 	private void possEventCalc(Event event) {
