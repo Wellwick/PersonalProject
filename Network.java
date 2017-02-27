@@ -774,6 +774,7 @@ public class Network implements ActionListener {
 	boolean eventSelected = false;
 	boolean shiftDown = false;
 	boolean addingItem = false;
+	JButton calcButton = null;
 	
 	public DrawPanel() {
 	    super();
@@ -794,6 +795,32 @@ public class Network implements ActionListener {
 			updateUI();
 		    }
 	    });
+	}
+	
+	private void possEventCalc(Event event) {
+	    //ask if they want to attempt a calculation
+	    if (calcButton != null) //need to remove existing button
+		super.remove(calcButton);
+	    calcButton = new JButton("Attempt Calculation");
+	    System.out.println("Added button");
+	    calcButton.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent ae) {
+		    if (!findProbability(event.getName())) //need to let the user know the calculation was not possible
+			JOptionPane.showMessageDialog(null, "Probability for " + event.getName() + " was incalculable");
+		    else {
+			//need to redraw and remove the button
+			removeButton();
+		    }
+		}
+	    });
+	    super.add(calcButton);
+	}
+	
+	private void removeButton() {
+	    if (calcButton != null) //need to remove existing button
+		super.remove(calcButton);
+	    calcButton = null;
+	    super.updateUI();
 	}
 	
 	//override the paint method
@@ -823,11 +850,13 @@ public class Network implements ActionListener {
 		int x = event.getX() + (50) - (fm.stringWidth(name)/2);
 		int y = event.getY() + (60/2) + 5;
 		g2.drawString(name, x, y);
-		if (event.getSelected() && event.hasPrior()) {
-		    //print out the probability
-		    String newString = "P("+name+") = "+event.getProb();
-		    int newX = event.getX() + 50 - (fm.stringWidth(newString)/2);
-		    g2.drawString(newString,newX,y-35);
+		if (event.getSelected()) {
+		    if (event.hasPrior()) {
+			//print out the probability
+			String newString = "P("+name+") = "+event.getProb();
+			int newX = event.getX() + 50 - (fm.stringWidth(newString)/2);
+			g2.drawString(newString,newX,y-35);
+		    }
 		}
 		//now have to step through and display each showConnections
 		Iterator<Prob> probs = entry.getValue().descendingIterator();
@@ -841,6 +870,9 @@ public class Network implements ActionListener {
 			int yChange = (next.getY()+30) - (cond.getY()+30);
 			int xChange = (next.getX()) - (cond.getX()+100);
 			double rotation = Math.atan2(yChange,xChange);
+			//make sure rotation doesn't end up upside down
+			if (rotation > Math.PI/2) 
+			    rotation -= Math.PI;
 			String probString = "P("+next.getName()+"|"+cond.getName()+") = "+prob.getProb();
 			int stringLength = fm.stringWidth(probString)/2;
 			AffineTransform orig = g2.getTransform();
@@ -864,6 +896,7 @@ public class Network implements ActionListener {
 	
 	
 	public void mouseClicked(MouseEvent e) {
+	    if (calcButton != null) super.remove(calcButton);
 	    if (addingItem) return;
 	    boolean addingConditional = false;
 	    if (eventSelected && shiftDown) {
@@ -891,7 +924,9 @@ public class Network implements ActionListener {
 			event.setSelected(true);
 			if (event.hasPrior()) {
 			    System.out.println(event.getName() + " has probability " + event.getProb());
-			}
+			} else {
+			    possEventCalc(event);
+			} 
 		    } 
 		    eventSelected = true;
 		    intersection = true;
