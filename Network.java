@@ -95,6 +95,7 @@ public class Network implements ActionListener {
     private JMenuBar getMenuBar() {
 	JMenuBar menuBar;
 	JMenu menu;
+	JMenu fallacies;
 	JMenuItem menuItem; //stores new items temporarily for addition
 	
 	menuBar = new JMenuBar();
@@ -103,6 +104,11 @@ public class Network implements ActionListener {
 	menu = new JMenu("File");
 	menuBar.add(menu);
 	
+	//menu specifically for running logical fallacies
+	fallacies = new JMenu("Fallacies");
+	menuBar.add(fallacies);
+	
+	//file options
 	menuItem = new JMenuItem("New Network");
 	menuItem.addActionListener(this);
 	menu.add(menuItem);
@@ -118,6 +124,13 @@ public class Network implements ActionListener {
 	menuItem = new JMenuItem("Quit");
 	menuItem.addActionListener(this);
 	menu.add(menuItem);
+	
+	//fallacies menu
+	menuItem = new JMenuItem("Base Rate Fallacy");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { baseRateFallacy(); }
+	});
+	fallacies.add(menuItem);
 	
 	return menuBar;
     }
@@ -172,6 +185,49 @@ public class Network implements ActionListener {
 	    System.exit(0);
 	}
     }
+    
+    /***
+	BELOW ARE THE IMPLEMENTED FALLACIES IN THE PROGRAM
+	ADDITIONAL ONES CAN BE ADDED
+    ***/
+    
+    //method for demonstrating the base rate fallacy
+    private void baseRateFallacy() {
+	//empty the 
+	load(null);
+	JOptionPane.showMessageDialog(dp, "The base rate fallacy occurs when the mind focuses heavily on a specific scenario, without taking into account the base rate information", "Base Rate Fallacy", JOptionPane.PLAIN_MESSAGE);
+	Event disease = new Event("Disease", 0.001f, 60, 50);
+	disease.setSelected(true);
+	addEvent(disease);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Here is a disease with a prior probability of 0.1%", "Base Rate Fallacy 1", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "There is a test which can be conducted for this disease", "Base Rate Fallacy 2", JOptionPane.PLAIN_MESSAGE);
+	Event positiveResult = new Event("Positive", 60, 250);
+	positiveResult.setSelected(true);
+	disease.setSelected(false);
+	addEvent(positiveResult);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "This event represents the occurence of a positive test result", "Base Rate Fallacy 3", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "When the disease is present, the test returns a positive result 100% of the time", "Base Rate Fallacy 4", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(positiveResult.getName(), disease.getName(), 1.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "This can be represented with the conditional probability P(Positive|Disease) = 1", "Base Rate Fallacy 5", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This test can produce a false positive however", "Base Rate Fallacy 6", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "5% of the time the disease isn't present, a positive result occurs anyway", "Base Rate Fallacy 7", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(positiveResult.getName(), disease.not().getName(), 0.5f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Now, say that you take this test and get a positive test result", "Base Rate Fallacy 8", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Although the probability of having the disease may seem high, the base rate must be taken into account", "Base Rate Fallacy 9", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Bayes rule can be used to calculate P(Disease|Positive) which is the true likelihood of having the disease", "Base Rate Fallacy 10", JOptionPane.PLAIN_MESSAGE);
+	findProbability(positiveResult.getName(), disease.getName());
+	positiveResult.setSelected(false);
+	disease.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "From this calculation, it is possible to see that the probability of having the disease is only ~0.2%", "Base Rate Fallacy 11", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is an example of using the base rate correctly, since prior probability is taken into account equally with conditional probability", "Base Rate Fallacy 12", JOptionPane.PLAIN_MESSAGE);
+	
+    }
+    
     
     //method to handle reading of user requests
     private void scanUserInput() {
