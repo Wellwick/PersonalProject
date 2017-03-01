@@ -214,7 +214,7 @@ public class Network implements ActionListener {
 	JOptionPane.showMessageDialog(dp, "This can be represented with the conditional probability P(Positive|Disease) = 1", "Base Rate Fallacy 5", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "This test can produce a false positive however", "Base Rate Fallacy 6", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "5% of the time the disease isn't present, a positive result occurs anyway", "Base Rate Fallacy 7", JOptionPane.PLAIN_MESSAGE);
-	addConditionalProbability(positiveResult.getName(), disease.not().getName(), 0.5f);
+	addConditionalProbability(positiveResult.getName(), disease.not().getName(), 0.05f);
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "Now, say that you take this test and get a positive test result", "Base Rate Fallacy 8", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "Although the probability of having the disease may seem high, the base rate must be taken into account", "Base Rate Fallacy 9", JOptionPane.PLAIN_MESSAGE);
@@ -223,7 +223,7 @@ public class Network implements ActionListener {
 	positiveResult.setSelected(false);
 	disease.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "From this calculation, it is possible to see that the probability of having the disease is only ~0.2%", "Base Rate Fallacy 11", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "From this calculation, it is possible to see that the probability of having the disease is only ~2%", "Base Rate Fallacy 11", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "This is an example of using the base rate correctly, since prior probability is taken into account equally with conditional probability", "Base Rate Fallacy 12", JOptionPane.PLAIN_MESSAGE);
 	
     }
@@ -333,6 +333,7 @@ public class Network implements ActionListener {
     
     //method to load a file
     private void load(String filename) {
+	dp.removeButton();
 	//generate events
 	//must assign into probabilities at the same time
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
@@ -951,7 +952,7 @@ public class Network implements ActionListener {
 	    super.add(calcButton);
 	}
 	
-	private void removeButton() {
+	public void removeButton() {
 	    if (calcButton != null) //need to remove existing button
 		super.remove(calcButton);
 	    calcButton = null;
