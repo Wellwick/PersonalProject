@@ -1126,25 +1126,50 @@ public class Network implements ActionListener {
 		    final String eventName = connect.getName();
 		    final String condName = cond.getName();
 		    final String condNotName = cond.not().getName();
+		    final float connectProb;
+		    if (connect.hasPrior()) connectProb = connect.getProb();
+		    else connectProb = -1;
 		    
 		    addProb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 			    //allow possibility for both empty so that unwanted conditionals can be removed
 			    try {
+				//make sure this isn't an impossible probability
+				if (!prob.getText().equals("") && !counterProb.getText().equals("") && connectProb != -1) {
+                                    float p1 = Float.parseFloat(prob.getText());
+                                    float p2 = Float.parseFloat(counterProb.getText());
+                                    //connect's prob must be between p1 and p2
+                                    if (!(p1 >= connectProb && p2 <= connectProb) && 
+                                        !(p1 <= connectProb && p2 >= connectProb)) {
+                                        //these probabilities aren't possible
+                                        throw new UnexpectedProbabilityException(connectProb);
+                                    }
+                                        
+				}
 				if (!prob.getText().equals("")) {
 				    float probability = Float.parseFloat(prob.getText());
-				    addConditionalProbability(eventName, condName, probability);
+				    if (probability < 0 || probability > 1) {
+                                        JOptionPane.showMessageDialog(null, "Probability must lie between 0-1");
+				    } else {
+                                        addConditionalProbability(eventName, condName, probability);
+				    }
 				}
 				removeConditionalProb(pA);
 				if (!counterProb.getText().equals("")) {
 				    float probability = Float.parseFloat(counterProb.getText());
-				    addConditionalProbability(eventName, condNotName, probability);
+				    if (probability < 0 || probability > 1) {
+                                        JOptionPane.showMessageDialog(null, "Probability must lie between 0-1");
+				    } else {
+                                        addConditionalProbability(eventName, condNotName, probability);
+                                    }
 				}
 				removeConditionalProb(pB);
 				dp.updateUI();
 				probFrame.dispatchEvent(new WindowEvent(probFrame, WindowEvent.WINDOW_CLOSING));
 			    } catch (NumberFormatException nf) {
 				JOptionPane.showMessageDialog(null, "The probability was not a number");
+			    } catch (UnexpectedProbabilityException up) {
+                                JOptionPane.showMessageDialog(null, "Probabilities must lie either side of " + up.prob());
 			    } 
 			}
 		    });
@@ -1244,4 +1269,10 @@ public class Network implements ActionListener {
 }
 
 class UnexpectedCharacterException extends IOException { }
-
+class UnexpectedProbabilityException extends Exception {
+    float probability;
+    public UnexpectedProbabilityException(float prob) {
+        probability = prob;
+    }
+    public float prob() { return probability; }
+}
