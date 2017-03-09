@@ -132,6 +132,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("Conjunction Fallacy");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { conjunctionFallacy(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -193,7 +199,7 @@ public class Network implements ActionListener {
     
     //method for demonstrating the base rate fallacy
     private void baseRateFallacy() {
-	//empty the 
+	//empty the network
 	load(null);
 	JOptionPane.showMessageDialog(dp, "The base rate fallacy occurs when the mind focuses heavily on a specific scenario, without taking into account the base rate information", "Base Rate Fallacy", JOptionPane.PLAIN_MESSAGE);
 	Event disease = new Event("Disease", 0.001f, 60, 50);
@@ -228,6 +234,58 @@ public class Network implements ActionListener {
 	
     }
     
+    private void conjunctionFallacy() {
+	//empty the network
+	load(null);
+	JOptionPane.showMessageDialog(dp, "The conjunction fallacy occurs when a conjunction of events appears more likely than an event by itself", "Conjunction Fallacy", JOptionPane.PLAIN_MESSAGE);
+	Event creative = new Event("Creative", 1.0f, 10, 100);
+	creative.setSelected(true);
+	addEvent(creative);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Let's suppose there is a man called Bob who is creative", "Conjunction Fallacy 1", JOptionPane.PLAIN_MESSAGE);
+	Event bank = new Event("Bank", 0.3f, 260, 180);
+	creative.setSelected(false);
+	bank.setSelected(true);
+	addEvent(bank);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "What is more likely: Bob works at a bank-", "Conjunction Fallacy 2", JOptionPane.PLAIN_MESSAGE);
+	Event paintsAndBank = new Event("Paints&Bank", 650, 100);
+	addEvent(paintsAndBank);
+	paintsAndBank.setSelected(true);
+	bank.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "-or that Bob paints and works at a bank?", "Conjunction Fallacy 3", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Because of Bob being creative, seeing the idea of painting seems to make painting and working at a bank more likely, however this probability is contained within the probability space of Bob working at the bank", "Conjunction Fallacy 4", JOptionPane.PLAIN_MESSAGE);
+	Event paints = new Event("Paints", 260, 20);
+	addEvent(paints);
+	paints.setSelected(true);
+	paintsAndBank.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "To visualise this, we can demonstrate the seperate event of Bob painting", "Conjunction Fallacy 5", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(paints.getName(), creative.getName(), 0.75f);
+	addConditionalProbability(paints.getName(), creative.not().getName(), 0.2f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Because of Bob being creative we can make some calculations on the probability of Bob painting", "Conjunction Fallacy 6", JOptionPane.PLAIN_MESSAGE);
+	findProbability(paints.getName());
+	bank.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Here we can see the probability of Bob painting is 0.75 and the prior probability of Bob working at a bank is 0.3", "Conjunction Fallacy 7", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(paintsAndBank.getName(), paints.getName(), bank.getProb());
+	addConditionalProbability(paintsAndBank.getName(), paints.not().getName(), 0.0f);
+	paintsAndBank.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Since working at a bank and painting are independent events, P(Paints&Bank|Paints) = P(Bank)", "Conjunction Fallacy 8", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is because the conjunction of independent events P(A∩B) = P(A) x P(B)", "Conjunction Fallacy 9", JOptionPane.PLAIN_MESSAGE);
+	findProbability(paintsAndBank.getName());
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "After performing this calculation, P(Paints&Bank) = 0.225 which as expected is less than the probability of P(B) = 0.3", "Conjunction Fallacy 10", JOptionPane.PLAIN_MESSAGE);
+	bank.setSelected(false);
+	paints.setSelected(false);
+	addConditionalProbability(paintsAndBank.getName(), bank.getName(), paints.getProb());
+	addConditionalProbability(paintsAndBank.getName(), bank.not().getName(), 0.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "This is an example of using conjunction correctly, since no conjunction of events can be more likely than the likelihood of two events seperately", "Conjunction Fallacy 11", JOptionPane.PLAIN_MESSAGE);
+    }
     
     //method to handle reading of user requests
     private void scanUserInput() {
