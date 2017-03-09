@@ -138,6 +138,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("Affirming the Consequenct");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { affirmingTheConsequence(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -208,7 +214,7 @@ public class Network implements ActionListener {
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "Here is a disease with a prior probability of 0.1%", "Base Rate Fallacy 1", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "There is a test which can be conducted for this disease", "Base Rate Fallacy 2", JOptionPane.PLAIN_MESSAGE);
-	Event positiveResult = new Event("Positive", 60, 250);
+	Event positiveResult = new Event("Positive", 60, 350);
 	positiveResult.setSelected(true);
 	disease.setSelected(false);
 	addEvent(positiveResult);
@@ -235,7 +241,6 @@ public class Network implements ActionListener {
     }
     
     private void conjunctionFallacy() {
-	//empty the network
 	load(null);
 	JOptionPane.showMessageDialog(dp, "The conjunction fallacy occurs when a conjunction of events appears more likely than an event by itself", "Conjunction Fallacy", JOptionPane.PLAIN_MESSAGE);
 	Event creative = new Event("Creative", 1.0f, 10, 100);
@@ -285,6 +290,33 @@ public class Network implements ActionListener {
 	addConditionalProbability(paintsAndBank.getName(), bank.not().getName(), 0.0f);
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "This is an example of using conjunction correctly, since no conjunction of events can be more likely than the likelihood of two events seperately", "Conjunction Fallacy 11", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    private void affirmingTheConsequence() {
+	load(null);
+	JOptionPane.showMessageDialog(dp, "Affirming the consequent occurs when seeing the effect of a possible cause produces the assumption of that specific cause occurring", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
+	Event rain = new Event("Rain", 300, 10);
+	Event wet = new Event("Wet", 1.0f, 300, 260);
+	addEvent(rain);
+	addEvent(wet);
+	wet.setSelected(true);
+	addConditionalProbability(wet.getName(), rain.getName(), 1.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Suppose that whenever it has been raining the ground is wet and currently the ground is wet", "Affirming the Consequent 1", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Since all that is visible in this probability space is the raining event, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account", "Affirming the Consequent 2", JOptionPane.PLAIN_MESSAGE);
+	Event washingCar = new Event("Washing Car", 10, 260);
+	addEvent(washingCar);
+	addConditionalProbability(wet.getName(), washingCar.getName(), 1.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Rain is not the only way that the ground can get wet, for example a car may have been washed recently", "Affirming the Consequent 3", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(rain.getName(), wet.not().getName(), 0.0f);
+	wet.setSelected(false);
+	rain.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "The only valid calculation that can be made with this is to calculate the contrapositive P(Rain|!Wet) = 0.0f", "Affirming the Consequent 4", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is because if there is no wet ground, there is no probability space where rain has occured", "Affirming the Consequent 5", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This example demonstrates how the logical contrapositive can be calculated but also how probabilities can not be simply reversed", "Affirming the Consequent 6", JOptionPane.PLAIN_MESSAGE);
+	//JOptionPane.showMessageDialog(dp, "", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
     }
     
     //method to handle reading of user requests
