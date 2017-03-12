@@ -88,6 +88,7 @@ public class Network implements ActionListener {
 	frame.setContentPane(getContentPane());
 
 	frame.setSize(1280, 720);
+	frame.setMinimumSize(new Dimension(400, 300));
 	frame.setVisible(true);
     }
     
@@ -179,6 +180,7 @@ public class Network implements ActionListener {
 	});
 	*/
 	helpFrame.setSize(400, 500);
+	helpFrame.setMinimumSize(new Dimension(200, 200));
 	helpFrame.setAlwaysOnTop(true);
 	helpFrame.setVisible(true);
     }
@@ -1209,15 +1211,24 @@ public class Network implements ActionListener {
 			}
 		    });
 		    JPanel probPanel = new JPanel();
-		    JLabel probLabel = new JLabel("P("+connect.getName()+"|"+cond.getName()+") =");
+		    String connectName = connect.getName();
+		    if (connectName.length() > 10) 
+			connectName = connectName.substring(0, 4) + "..." + connectName.substring(connectName.length()-4);
+		    
+		    String conName = cond.getName();
+		    if (conName.length() > 10) 
+			conName = conName.substring(0, 4) + "..." + conName.substring(conName.length()-4);
+		    
+		    JLabel probLabel = new JLabel("P("+connectName+"|"+conName+") =");
 		    JTextField prob = new JTextField(5);
-		    JLabel counterProbLabel = new JLabel("P("+connect.getName()+"|"+cond.not().getName()+") =");
+		    JLabel counterProbLabel = new JLabel("P("+connectName+"|!"+conName+") =");
 		    JTextField counterProb = new JTextField(5);
 		    JButton addProb = new JButton("Add Conditional Probability");
 		    
 		    probFrame.setContentPane(probPanel);
 		    probFrame.setLocation(e.getX(), e.getY());
-		    probFrame.setSize(350, 100);
+		    probFrame.setSize(350, 120);
+		    probFrame.setResizable(false);
 		    probFrame.setVisible(true);
 		    
 		    probPanel.add(probLabel);
@@ -1327,7 +1338,8 @@ public class Network implements ActionListener {
 		
 		eventFrame.setContentPane(eventPanel);
 		eventFrame.setLocation(e.getX(), e.getY());
-		eventFrame.setSize(350, 100);
+		eventFrame.setSize(350, 120);
+		eventFrame.setResizable(false);
 		eventFrame.setVisible(true);
 		
 		eventNameLabel.setBounds(0, 20, 10, 25);
