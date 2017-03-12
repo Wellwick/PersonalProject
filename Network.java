@@ -182,6 +182,7 @@ public class Network implements ActionListener {
 	helpFrame.setSize(400, 500);
 	helpFrame.setMinimumSize(new Dimension(200, 200));
 	helpFrame.setAlwaysOnTop(true);
+	helpFrame.setResizable(false);
 	helpFrame.setVisible(true);
     }
     
