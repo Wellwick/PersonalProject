@@ -96,6 +96,7 @@ public class Network implements ActionListener {
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenu fallacies;
+	JMenuItem help;
 	JMenuItem menuItem; //stores new items temporarily for addition
 	
 	menuBar = new JMenuBar();
@@ -107,6 +108,13 @@ public class Network implements ActionListener {
 	//menu specifically for running logical fallacies
 	fallacies = new JMenu("Fallacies");
 	menuBar.add(fallacies);
+	
+	//menu to show help
+	help = new JMenuItem("Help");
+	help.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) { help(); }
+	});
+	menuBar.add(help);
 	
 	//file options
 	menuItem = new JMenuItem("New Network");
@@ -151,6 +159,28 @@ public class Network implements ActionListener {
     private Container getContentPane() {
 	dp = new DrawPanel();
 	return dp;
+    }
+    
+    //help method
+    private void help() {
+	System.out.println("Displaying help");
+	
+	//build a new JFrame and show some help
+	JFrame helpFrame = new JFrame("Help");
+	helpFrame.add(new HelpPane(), BorderLayout.CENTER);
+	
+	
+	/*
+	helpFrame.addWindowListener(new WindowAdapter() {
+	    @Override
+	    public void windowClosing(WindowEvent windowEvent) {
+		//do something if it closes
+	    }
+	});
+	*/
+	helpFrame.setSize(400, 500);
+	helpFrame.setAlwaysOnTop(true);
+	helpFrame.setVisible(true);
     }
     
     //catches action events from the menu
