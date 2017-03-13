@@ -165,6 +165,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("Begging the Question");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { beggingTheQuestion(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -450,6 +456,39 @@ public class Network implements ActionListener {
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "This network now demonstrates that 'Sleep' and 'Sunset' are actually conditionally independent events", "False Cause 7", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "Spotting a false cause is not always easy, usually requiring experiments to be undertaken to dis/prove the accuracy of the causality", "False Cause 8", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    private void beggingTheQuestion() {
+	load(null);
+	JOptionPane.showMessageDialog(dp, "Begging the Question is a type of circular reasoning in which the cause of an event is not defined in a clear/linear way, instead relating to itself in some way", "Begging the Question", JOptionPane.PLAIN_MESSAGE);
+	Event wellKnown = new Event("Known", 400, 100);
+	Event popular = new Event("Popular", 400, 500);
+	addEvent(wellKnown);
+	addEvent(popular);
+	addConditionalProbability(popular.getName(), wellKnown.getName(), 1.0f);
+	addConditionalProbability(popular.getName(), wellKnown.not().getName(), 0.0f);
+	popular.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Suppose someone makes the statement 'I am popular because everyone knows me'", "Begging the Question 1", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(wellKnown.getName(), popular.getName(), 1.0f);
+	addConditionalProbability(wellKnown.getName(), popular.not().getName(), 0.0f);
+	popular.setSelected(false);
+	wellKnown.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "However when you ask them why they are well known, they respond 'because I'm popular'", "Begging the Question 2", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is an example of circular logic and there is no way this information can be learned since it is derived from itself", "Begging the Question 3", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Providing a seperate premise is the important thing when establishing a causal relationship", "Begging the Question 4", JOptionPane.PLAIN_MESSAGE);
+	Event musical = new Event("Musical", 1.0f, 100, 100);
+	addEvent(musical);
+	addConditionalProbability(wellKnown.getName(), musical.getName(), 0.7f);
+	addConditionalProbability(wellKnown.getName(), musical.not().getName(), 0.3f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "An example reason of being well known may be the person being musical, which can be used for calculations within the Bayesian network", "Begging the Question 5", JOptionPane.PLAIN_MESSAGE);
+	findProbability(popular.getName());
+	popular.setSelected(true);
+	wellKnown.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "If circular reasoning is ever encountered, attempt to create a connection which has a seperate premise to avoid this logical fallacy", "Begging the Question 6", JOptionPane.PLAIN_MESSAGE);
     }
     
     /***
