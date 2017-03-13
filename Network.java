@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class Network implements ActionListener {
     HashMap<Event, LinkedList<Prob>> probabilities;
     DrawPanel dp;
     JFrame frame;
-    HashMap<String, Thread> fallacy;
+    LinkedList<AbstractMap.SimpleEntry<String, Thread>> fallacy;
     
     public Network() {
 	//means we are started with a empty network
@@ -265,9 +266,8 @@ public class Network implements ActionListener {
 	    dp.println("");
 	    return;
 	} else {
-	    //produce the entry set and execute the next step
-	    Map.Entry<String, Thread> nextStep = fallacy.entrySet().iterator().next();
-	    fallacy.remove(nextStep.getKey()); //removes this step!
+	    //produce the next step, removing it from the list
+	    Map.Entry<String, Thread> nextStep = fallacy.poll();
 	    if (nextStep.getValue() != null) {
 		nextStep.getValue().run();
 	    }
@@ -287,9 +287,9 @@ public class Network implements ActionListener {
     private void baseRateFallacy() {
 	//empty the network
 	load(null);
-	HashMap<String, Thread> steps = new HashMap<String, Thread>();
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "The base rate fallacy occurs when the mind focuses heavily on a specific scenario, without taking into account the base rate information";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	Thread r = new Thread(new Runnable() {
 	    @Override
 	    public void run() {
@@ -300,9 +300,9 @@ public class Network implements ActionListener {
 	    }
 	});
 	s = "Here is a disease with a prior probability of 0.1%";
-	steps.put(s, r);
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "There is a test which can be conducted for this disease";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	r = new Thread(new Runnable() {
 	    @Override
 	    public void run() {
@@ -314,9 +314,9 @@ public class Network implements ActionListener {
 	    }
 	});
 	s = "This event represents the occurence of a positive test result";
-	steps.put(s, r);
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "When the disease is present, the test returns a positive result 100% of the time";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	r = new Thread(new Runnable() {
 	    @Override
 	    public void run() {
@@ -325,11 +325,11 @@ public class Network implements ActionListener {
 	    }
 	});
 	s = "This can be represented with the conditional probability P(Positive|Disease) = 1";
-	steps.put(s, r);
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This test can produce a false positive however";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "5% of the time the disease isn't present, a positive result occurs anyway";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	r = new Thread(new Runnable() {
 	    @Override
 	    public void run() {
@@ -338,11 +338,11 @@ public class Network implements ActionListener {
 	    }
 	});
 	s = "Now, say that you take this test and get a positive test result";
-	steps.put(s, r);
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Although the probability of having the disease may seem high, the base rate must be taken into account";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "Bayes rule can be used to calculate P(Disease|Positive) which is the true likelihood of having the disease";
-	steps.put(s, null);
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	r = new Thread(new Runnable() {
 	    @Override
 	    public void run() {
@@ -353,68 +353,129 @@ public class Network implements ActionListener {
 	    }
 	});
 	s = "From this calculation, it is possible to see that the probability of having the disease is only ~2%";
-	steps.put(s, r);
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This is an example of using the base rate correctly, since prior probability is taken into account equally with conditional probability";
-	steps.put(s, null);
-	fallacy = steps;
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	stepFallacy();
     }
     
     private void conjunctionFallacy() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "The conjunction fallacy occurs when a conjunction of events appears more likely than an event by itself", "Conjunction Fallacy", JOptionPane.PLAIN_MESSAGE);
-	Event creative = new Event("Creative", 1.0f, 10, 100);
-	creative.setSelected(true);
-	addEvent(creative);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Let's suppose there is a man called Bob who is creative", "Conjunction Fallacy 1", JOptionPane.PLAIN_MESSAGE);
-	Event bank = new Event("Bank", 0.3f, 260, 180);
-	creative.setSelected(false);
-	bank.setSelected(true);
-	addEvent(bank);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "What is more likely: Bob works at a bank-", "Conjunction Fallacy 2", JOptionPane.PLAIN_MESSAGE);
-	Event paintsAndBank = new Event("Paints∩Bank", 650, 100);
-	addEvent(paintsAndBank);
-	paintsAndBank.setSelected(true);
-	bank.setSelected(false);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "-or that Bob paints and works at a bank?", "Conjunction Fallacy 3", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Because of Bob being creative, seeing the idea of painting seems to make painting and working at a bank more likely, however this probability is contained within the probability space of Bob working at the bank", "Conjunction Fallacy 4", JOptionPane.PLAIN_MESSAGE);
-	Event paints = new Event("Paints", 260, 20);
-	addEvent(paints);
-	paints.setSelected(true);
-	paintsAndBank.setSelected(false);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "To visualise this, we can demonstrate the seperate event of Bob painting", "Conjunction Fallacy 5", JOptionPane.PLAIN_MESSAGE);
-	addConditionalProbability(paints.getName(), creative.getName(), 0.75f);
-	addConditionalProbability(paints.getName(), creative.not().getName(), 0.2f);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Because of Bob being creative we can make some calculations on the probability of Bob painting", "Conjunction Fallacy 6", JOptionPane.PLAIN_MESSAGE);
-	findProbability(paints.getName());
-	bank.setSelected(true);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Here we can see the probability of Bob painting is 0.75 and the prior probability of Bob working at a bank is 0.3", "Conjunction Fallacy 7", JOptionPane.PLAIN_MESSAGE);
-	addConditionalProbability(paintsAndBank.getName(), paints.getName(), bank.getProb());
-	addConditionalProbability(paintsAndBank.getName(), paints.not().getName(), 0.0f);
-	paintsAndBank.setSelected(true);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Since working at a bank and painting are independent events, P(Paints∩Bank|Paints) = P(Bank)", "Conjunction Fallacy 8", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is because the conjunction of independent events P(A∩B) = P(A) x P(B)", "Conjunction Fallacy 9", JOptionPane.PLAIN_MESSAGE);
-	findProbability(paintsAndBank.getName());
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "After performing this calculation, P(Paints∩Bank) = 0.225 which as expected is less than the probability of P(B) = 0.3", "Conjunction Fallacy 10", JOptionPane.PLAIN_MESSAGE);
-	bank.setSelected(false);
-	paints.setSelected(false);
-	addConditionalProbability(paintsAndBank.getName(), bank.getName(), paints.getProb());
-	addConditionalProbability(paintsAndBank.getName(), bank.not().getName(), 0.0f);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "This is an example of using conjunction correctly, since no conjunction of events can be more likely than the likelihood of two events seperately", "Conjunction Fallacy 11", JOptionPane.PLAIN_MESSAGE);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
+	String s = "The conjunction fallacy occurs when a conjunction of events appears more likely than an event by itself";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event creative = new Event("Creative", 1.0f, 10, 100);
+		creative.setSelected(true);
+		addEvent(creative);
+		dp.updateUI();
+	    }
+	});
+	s = "Let's suppose there is a man called Bob who is creative";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event bank = new Event("Bank", 0.3f, 260, 180);
+		findEvent("Creative").setSelected(false);
+		bank.setSelected(true);
+		addEvent(bank);
+		dp.updateUI();
+	    }
+	});
+	s = "What is more likely: Bob works at a bank-";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event paintsAndBank = new Event("Paints∩Bank", 650, 100);
+		addEvent(paintsAndBank);
+		paintsAndBank.setSelected(true);
+		findEvent("Bank").setSelected(false);
+		dp.updateUI();
+	    }
+	});
+	s = "-or that Bob paints and works at a bank?";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	s = "Because of Bob being creative, seeing the idea of painting seems to make painting and working at a bank more likely";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	s = "This probability is contained within the probability space of Bob working at the bank, however and as such isn't as likely as it appears";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event paints = new Event("Paints", 260, 20);
+		addEvent(paints);
+		paints.setSelected(true);
+		findEvent("Paints∩Bank").setSelected(false);
+		dp.updateUI();
+	    }
+	});
+	s = "To visualise this, we can demonstrate the seperate event of Bob painting";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Paints", "Creative", 0.75f);
+		addConditionalProbability("Paints", "!Creative", 0.2f);
+		dp.updateUI();
+	    }
+	});
+	s = "Because of Bob being creative we can make some calculations on the probability of Bob painting";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findProbability("Paints");
+		findEvent("Bank").setSelected(true);
+		dp.updateUI();
+	    }
+	});
+	s = "Here we can see the probability of Bob painting is 0.75 and the prior probability of Bob working at a bank is 0.3";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Paints∩Bank", "Paints", findEvent("Bank").getProb());
+		addConditionalProbability("Paints∩Bank", "!Paints", 0.0f);
+		findEvent("Paints∩Bank").setSelected(true);
+		dp.updateUI();
+	    }
+	});
+	s = "Since working at a bank and painting are independent events, P(Paints∩Bank|Paints) = P(Bank)";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	s = "This is because the conjunction of independent events P(A∩B) = P(A) x P(B)";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findProbability("Paints∩Bank");
+		dp.updateUI();
+	    }
+	});
+	s = "After performing this calculation, P(Paints∩Bank) = 0.225 which as expected is less than the probability of P(B) = 0.3";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findEvent("Bank").setSelected(false);
+		findEvent("Paints").setSelected(false);
+		addConditionalProbability("Paints∩Bank", "Bank", findEvent("Paints").getProb());
+		addConditionalProbability("Paints∩Bank", "!Bank", 0.0f);
+		dp.updateUI();
+	    }
+	});
+	s = "This is an example of using conjunction correctly, since no conjunction of events can be more likely than the likelihood of two events seperately";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	stepFallacy();
     }
     
     private void affirmingTheConsequence() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "Affirming the consequent occurs when seeing the effect of a possible cause produces the assumption of that specific cause occurring", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
+	String s = "Affirming the consequent occurs when seeing the effect of a possible cause produces the assumption of that specific cause occurring";
 	Event rain = new Event("Rain", 300, 10);
 	Event wet = new Event("Wet", 1.0f, 300, 260);
 	addEvent(rain);
@@ -422,39 +483,39 @@ public class Network implements ActionListener {
 	wet.setSelected(true);
 	addConditionalProbability(wet.getName(), rain.getName(), 1.0f);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose that whenever it has been raining the ground is wet and currently the ground is wet", "Affirming the Consequent 1", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Since all that is visible in this probability space is the raining event, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account", "Affirming the Consequent 2", JOptionPane.PLAIN_MESSAGE);
+	s = "Suppose that whenever it has been raining the ground is wet and currently the ground is wet";
+	s = "Since all that is visible in this probability space is the raining event, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account";
 	Event washingCar = new Event("Washing Car", 10, 260);
 	addEvent(washingCar);
 	addConditionalProbability(wet.getName(), washingCar.getName(), 1.0f);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Rain is not the only way that the ground can get wet, for example a car may have been washed recently", "Affirming the Consequent 3", JOptionPane.PLAIN_MESSAGE);
+	s = "Rain is not the only way that the ground can get wet, for example a car may have been washed recently";
 	addConditionalProbability(rain.getName(), wet.not().getName(), 0.0f);
 	wet.setSelected(false);
 	rain.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "The only valid calculation that can be made with this is to calculate the contrapositive P(Rain|!Wet) = 0.0f", "Affirming the Consequent 4", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is because if there is no wet ground, there is no probability space where rain has occured", "Affirming the Consequent 5", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This example demonstrates how the logical contrapositive can be calculated but also how probabilities can not be simply reversed", "Affirming the Consequent 6", JOptionPane.PLAIN_MESSAGE);
-	//JOptionPane.showMessageDialog(dp, "", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
+	s = "The only valid calculation that can be made with this is to calculate the contrapositive P(Rain|!Wet) = 0.0f";
+	s = "This is because if there is no wet ground, there is no probability space where rain has occured";
+	s = "This example demonstrates how the logical contrapositive can be calculated but also how probabilities can not be simply reversed";
+	//s = "", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
     }
     
     private void falseDilemma() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "False Dilemma is when only two options are presented when there are actually more", "False Dilemma", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Suppose you are given the choice between a red pill and a blue pill", "False Dilemma 1", JOptionPane.PLAIN_MESSAGE);
+	String s = "False Dilemma is when only two options are presented when there are actually more";
+	s = "Suppose you are given the choice between a red pill and a blue pill";
 	Event redPill = new Event("Red", 800, 50);
 	Event bluePill = new Event("Blue", 800, 250);
 	addEvent(redPill);
 	addEvent(bluePill);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "The appearance of this situation is that there is only a 50/50 choice", "False Dilemma 2", JOptionPane.PLAIN_MESSAGE);
+	s = "The appearance of this situation is that there is only a 50/50 choice";
 	Event redOrBlue = new Event("Red∪Blue", 400, 150);
 	redOrBlue.setSelected(true);
 	addEvent(redOrBlue);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "It is possible to represent these events together with a union operation", "False Dilemma 3", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "However this does not allow us to discern the likelihood of any of the events at this point. More information is needed!", "False Dilemma 4", JOptionPane.PLAIN_MESSAGE);
+	s = "It is possible to represent these events together with a union operation";
+	s = "However this does not allow us to discern the likelihood of any of the events at this point. More information is needed!";
 	redOrBlue.setSelected(false);
 	bluePill.setSelected(true);
 	redPill.setSelected(true);
@@ -463,18 +524,18 @@ public class Network implements ActionListener {
 	addConditionalProbability(redPill.getName(), redOrBlue.not().getName(), 0.0f);
 	addConditionalProbability(bluePill.getName(), redOrBlue.not().getName(), 0.0f);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Defining these conditional probabilities will allow us to make calculations at a later point", "False Dilemma 5", JOptionPane.PLAIN_MESSAGE);
+	s = "Defining these conditional probabilities will allow us to make calculations at a later point";
 	Event noPill = new Event("No Pill", 800, 600);
 	bluePill.setSelected(false);
 	redPill.setSelected(false);
 	addEvent(noPill);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose we have some universal information that some people refuse to take the pills", "False Dilemma 6", JOptionPane.PLAIN_MESSAGE);
+	s = "Suppose we have some universal information that some people refuse to take the pills";
 	Event pillOrNot = new Event("Pill∪!Pill", 1.0f, 10, 350);
 	addEvent(pillOrNot);
 	pillOrNot.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "This could also be represented with another union operation", "False Dilemma 7", JOptionPane.PLAIN_MESSAGE);
+	s = "This could also be represented with another union operation";
 	addConditionalProbability(redOrBlue.getName(), pillOrNot.getName(), 0.8f);
 	addConditionalProbability(noPill.getName(), pillOrNot.getName(), 0.2f);
 	addConditionalProbability(redOrBlue.getName(), pillOrNot.not().getName(), 0.0f);
@@ -482,7 +543,7 @@ public class Network implements ActionListener {
 	redOrBlue.setSelected(true);
 	noPill.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "With access to this information it is possible to perform calculations on the liklihood on various events", "False Dilemma 8", JOptionPane.PLAIN_MESSAGE);
+	s = "With access to this information it is possible to perform calculations on the liklihood on various events";
 	noPill.setSelected(false);
 	pillOrNot.setSelected(false);
 	bluePill.setSelected(true);
@@ -490,13 +551,13 @@ public class Network implements ActionListener {
 	findProbability(redPill.getName());
 	findProbability(bluePill.getName());
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Through exploring the probability space it has been discovered the original presented options were not the only ones", "False Dilemma 9", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is a demonstration of how the False Dilemma problem can be avoided through considering if the choices presented cover the universal probability space", "False Dilemma 10", JOptionPane.PLAIN_MESSAGE);
+	s = "Through exploring the probability space it has been discovered the original presented options were not the only ones";
+	s = "This is a demonstration of how the False Dilemma problem can be avoided through considering if the choices presented cover the universal probability space";
     }
     
     private void falseCause() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "False Cause is when an incorrect assertion is made that one event causes another. Sometimes both events may be caused by another event entirely.", "False Cause", JOptionPane.PLAIN_MESSAGE);
+	String s = "False Cause is when an incorrect assertion is made that one event causes another. Sometimes both events may be caused by another event entirely.";
 	Event sleep = new Event("Sleep", 400, 200);
 	Event sunset = new Event("Sunset", 700, 200);
 	addEvent(sleep);
@@ -504,10 +565,10 @@ public class Network implements ActionListener {
 	addConditionalProbability(sunset.getName(), sleep.getName(), 1.0f);
 	sunset.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Take, for example, going to sleep causing the sun to go down", "False Cause 1", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Although this is illogical it may be true that going to sleep and sunset coincide", "False Cause 2", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is where false causes can be identified", "False Cause 3", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "The best method for avoiding false causes is to identify possible other causes (or experimentally proving the case false)", "False Cause 4", JOptionPane.PLAIN_MESSAGE);
+	s = "Take, for example, going to sleep causing the sun to go down";
+	s = "Although this is illogical it may be true that going to sleep and sunset coincide";
+	s = "This is where false causes can be identified";
+	s = "The best method for avoiding false causes is to identify possible other causes (or experimentally proving the case false)";
 	load(null);
 	Event dayEnd = new Event("Day's End", 300, 200);
 	sunset = new Event("Sunset", 700, 100);
@@ -516,20 +577,20 @@ public class Network implements ActionListener {
 	addEvent(dayEnd);
 	addConditionalProbability(sunset.getName(), dayEnd.getName(), 1.0f);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose for example we consider it being the end of the day causing the sun to set instead", "False Cause 5", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This makes more sense and also is a possible cause for going to sleep", "False Cause 6", JOptionPane.PLAIN_MESSAGE);
+	s = "Suppose for example we consider it being the end of the day causing the sun to set instead";
+	s = "This makes more sense and also is a possible cause for going to sleep";
 	sleep = new Event("Sleep", 700, 300);
 	addEvent(sleep);
 	addConditionalProbability(sleep.getName(), dayEnd.getName(), 1.0f);
 	sleep.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "This network now demonstrates that 'Sleep' and 'Sunset' are actually conditionally independent events", "False Cause 7", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Spotting a false cause is not always easy, usually requiring experiments to be undertaken to dis/prove the accuracy of the causality", "False Cause 8", JOptionPane.PLAIN_MESSAGE);
+	s = "This network now demonstrates that 'Sleep' and 'Sunset' are actually conditionally independent events";
+	s = "Spotting a false cause is not always easy, usually requiring experiments to be undertaken to dis/prove the accuracy of the causality";
     }
     
     private void beggingTheQuestion() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "Begging the Question is a type of circular reasoning in which the cause of an event is not defined in a clear/linear way, instead relating to itself in some way", "Begging the Question", JOptionPane.PLAIN_MESSAGE);
+	String s = "Begging the Question is a type of circular reasoning in which the cause of an event is not defined in a clear/linear way, instead relating to itself in some way";
 	Event wellKnown = new Event("Known", 400, 100);
 	Event popular = new Event("Popular", 400, 500);
 	addEvent(wellKnown);
@@ -538,42 +599,42 @@ public class Network implements ActionListener {
 	addConditionalProbability(popular.getName(), wellKnown.not().getName(), 0.0f);
 	popular.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose someone makes the statement 'I am popular because everyone knows me'", "Begging the Question 1", JOptionPane.PLAIN_MESSAGE);
+	s = "Suppose someone makes the statement 'I am popular because everyone knows me'";
 	addConditionalProbability(wellKnown.getName(), popular.getName(), 1.0f);
 	addConditionalProbability(wellKnown.getName(), popular.not().getName(), 0.0f);
 	popular.setSelected(false);
 	wellKnown.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "However when you ask them why they are well known, they respond 'because I'm popular'", "Begging the Question 2", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is an example of circular logic and there is no way this information can be learned since it is derived from itself", "Begging the Question 3", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Providing a seperate premise is the important thing when establishing a causal relationship", "Begging the Question 4", JOptionPane.PLAIN_MESSAGE);
+	s = "However when you ask them why they are well known, they respond 'because I'm popular'";
+	s = "This is an example of circular logic and there is no way this information can be learned since it is derived from itself";
+	s = "Providing a seperate premise is the important thing when establishing a causal relationship";
 	Event musical = new Event("Musical", 1.0f, 100, 100);
 	addEvent(musical);
 	addConditionalProbability(wellKnown.getName(), musical.getName(), 0.7f);
 	addConditionalProbability(wellKnown.getName(), musical.not().getName(), 0.3f);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "An example reason of being well known may be the person being musical, which can be used for calculations within the Bayesian network", "Begging the Question 5", JOptionPane.PLAIN_MESSAGE);
+	s = "An example reason of being well known may be the person being musical, which can be used for calculations within the Bayesian network";
 	findProbability(popular.getName());
 	popular.setSelected(true);
 	wellKnown.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "If circular reasoning is ever encountered, attempt to create a connection which has a seperate premise to avoid this logical fallacy", "Begging the Question 6", JOptionPane.PLAIN_MESSAGE);
+	s = "If circular reasoning is ever encountered, attempt to create a connection which has a seperate premise to avoid this logical fallacy";
     }
     
     private void chainedConditions() {
 	load(null);
-	JOptionPane.showMessageDialog(dp, "Similar to the Conjunction fallacy, chained conditions tend to make a story sound more plausible however this also makes the events less probable", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	String s = "Similar to the Conjunction fallacy, chained conditions tend to make a story sound more plausible however this also makes the events less probable";
 	Event giantYellowBear = new Event("GYB", 1100, 100);
 	addEvent(giantYellowBear);
 	giantYellowBear.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear", "Chained Condition 1", JOptionPane.PLAIN_MESSAGE);
+	s = "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear";
 	Event bearZone = new Event("Bear Zone", 1.0f, 10, 100);
 	addEvent(bearZone);
 	bearZone.setSelected(true);
 	giantYellowBear.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Firstly let's suppose you live in an area with bears", "Chained Condition 2", JOptionPane.PLAIN_MESSAGE);
+	s = "Firstly let's suppose you live in an area with bears";
 	Event meetBear = new Event("Meet Bear", 320, 100);
 	addEvent(meetBear);
 	addConditionalProbability(meetBear.getName(), bearZone.getName(), 0.5f);
@@ -581,7 +642,7 @@ public class Network implements ActionListener {
 	meetBear.setSelected(true);
 	bearZone.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Next we need to include the probability of encountering a bear tomorrow", "Chained Condition 3", JOptionPane.PLAIN_MESSAGE);
+	s = "Next we need to include the probability of encountering a bear tomorrow";
 	Event hungry = new Event("Hungry", 600, 100);
 	addEvent(hungry);
 	addConditionalProbability(hungry.getName(), meetBear.getName(), 0.4f);
@@ -589,8 +650,8 @@ public class Network implements ActionListener {
 	hungry.setSelected(true);
 	meetBear.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "The bear would have to be hungry too", "Chained Condition 4", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Let's assume if the bear is hungry it is guaranteed to catch and eat you", "Chained Condition 5", JOptionPane.PLAIN_MESSAGE);
+	s = "The bear would have to be hungry too";
+	s = "Let's assume if the bear is hungry it is guaranteed to catch and eat you";
 	Event giant = new Event("Giant", 850, 100);
 	addEvent(giant);
 	addConditionalProbability(giant.getName(), hungry.getName(), 0.1f);
@@ -598,19 +659,19 @@ public class Network implements ActionListener {
 	giant.setSelected(true);
 	hungry.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "The liklihood of a given bear being giant is quite low, so the conditional probability is also low", "Chained Condition 6", JOptionPane.PLAIN_MESSAGE);
+	s = "The liklihood of a given bear being giant is quite low, so the conditional probability is also low";
 	addConditionalProbability(giantYellowBear.getName(), giant.getName(), 0.01f);
 	addConditionalProbability(giantYellowBear.getName(), giant.not().getName(), 0.0f);
 	giantYellowBear.setSelected(true);
 	giant.setSelected(false);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "It is also very rare to find a yellow bear", "Chained Condition 7", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Now that the conditions have been chained together it is possible to calculate the probability of this event", "Chained Condition 8", JOptionPane.PLAIN_MESSAGE);
+	s = "It is also very rare to find a yellow bear";
+	s = "Now that the conditions have been chained together it is possible to calculate the probability of this event";
 	findProbability(giantYellowBear.getName());
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "From this we can see the liklihood is very low, around 0.02%", "Chained Condition 9", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "When looking at an outcome, make sure to consider how many conditional events must occur and what the likelihood is between each", "Chained Condition 10", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Chained conditions are often considered much more likely than they are because having connecting events makes things sound more plausible", "Chained Condition 11", JOptionPane.PLAIN_MESSAGE);
+	s = "From this we can see the liklihood is very low, around 0.02%";
+	s = "When looking at an outcome, make sure to consider how many conditional events must occur and what the likelihood is between each";
+	s = "Chained conditions are often considered much more likely than they are because having connecting events makes things sound more plausible";
     }
     
     /***
@@ -1294,6 +1355,7 @@ public class Network implements ActionListener {
 	    getInputMap().put(KeyStroke.getKeyStroke("control released SPACE"), "released");
 	    getActionMap().put("pressed", new AbstractAction() {
 		    public void actionPerformed(ActionEvent e) {
+			if (fallacy != null) return;
 			shiftDown = true;
 			updateUI();
 		    }
@@ -1309,6 +1371,7 @@ public class Network implements ActionListener {
 	    getInputMap().put(KeyStroke.getKeyStroke("control released C"), "releaseC");
 	    getActionMap().put("pressC", new AbstractAction() {
 		    public void actionPerformed(ActionEvent e) {
+			if (fallacy != null) return;
 			calcConditionals = true;
 			updateUI();
 		    }
@@ -1426,6 +1489,7 @@ public class Network implements ActionListener {
 		}
 		
 	    }
+	    g2.setPaint(Color.BLACK);
 	    if (fallacy != null)
 		g2.drawString(fallacyLine, 10, 680);
 	    
