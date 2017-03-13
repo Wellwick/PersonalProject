@@ -159,6 +159,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("False Cause");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { falseCause(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -411,6 +417,39 @@ public class Network implements ActionListener {
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "Through exploring the probability space it has been discovered the original presented options were not the only ones", "False Dilemma 9", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "This is a demonstration of how the False Dilemma problem can be avoided through considering if the choices presented cover the universal probability space", "False Dilemma 10", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    private void falseCause() {
+	load(null);
+	JOptionPane.showMessageDialog(dp, "False Cause is when an incorrect assertion is made that one event causes another. Sometimes both events may be caused by another event entirely.", "False Cause", JOptionPane.PLAIN_MESSAGE);
+	Event sleep = new Event("Sleep", 400, 200);
+	Event sunset = new Event("Sunset", 700, 200);
+	addEvent(sleep);
+	addEvent(sunset);
+	addConditionalProbability(sunset.getName(), sleep.getName(), 1.0f);
+	sunset.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Take, for example, going to sleep causing the sun to go down", "False Cause 1", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Although this is illogical it may be true that going to sleep and sunset coincide", "False Cause 2", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is where false causes can be identified", "False Cause 3", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "The best method for avoiding false causes is to identify possible other causes (or experimentally proving the case false)", "False Cause 4", JOptionPane.PLAIN_MESSAGE);
+	load(null);
+	Event dayEnd = new Event("Day's End", 300, 200);
+	sunset = new Event("Sunset", 700, 100);
+	sunset.setSelected(true);
+	addEvent(sunset);
+	addEvent(dayEnd);
+	addConditionalProbability(sunset.getName(), dayEnd.getName(), 1.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Suppose for example we consider it being the end of the day causing the sun to set instead", "False Cause 5", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This makes more sense and also is a possible cause for going to sleep", "False Cause 6", JOptionPane.PLAIN_MESSAGE);
+	sleep = new Event("Sleep", 700, 300);
+	addEvent(sleep);
+	addConditionalProbability(sleep.getName(), dayEnd.getName(), 1.0f);
+	sleep.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "This network now demonstrates that 'Sleep' and 'Sunset' are actually conditionally independent events", "False Cause 7", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Spotting a false cause is not always easy, usually requiring experiments to be undertaken to dis/prove the accuracy of the causality", "False Cause 8", JOptionPane.PLAIN_MESSAGE);
     }
     
     /***
