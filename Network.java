@@ -548,7 +548,6 @@ public class Network implements ActionListener {
 	JOptionPane.showMessageDialog(dp, "From this we can see the liklihood is very low, around 0.02%", "Chained Condition 9", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "When looking at an outcome, make sure to consider how many conditional events must occur and what the likelihood is between each", "Chained Condition 10", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "Chained conditions are often considered much more likely than they are because having connecting events makes things sound more plausible", "Chained Condition 11", JOptionPane.PLAIN_MESSAGE);
-	
     }
     
     /***
