@@ -171,6 +171,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("Chained Conditions");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { chainedConditions(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -489,6 +495,20 @@ public class Network implements ActionListener {
 	wellKnown.setSelected(false);
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "If circular reasoning is ever encountered, attempt to create a connection which has a seperate premise to avoid this logical fallacy", "Begging the Question 6", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    private void chainedConditions() {
+	load(null);
+	JOptionPane.showMessageDialog(dp, "Similar to the Conjunction fallacy, chained conditions tend to make a story sound more plausible however this also makes the events less probable", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	Event giantYellowBear = new Event("GYB", 1100, 100);
+	addEvent(giantYellowBear);
+	giantYellowBear.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	
+	JOptionPane.showMessageDialog(dp, "", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	
     }
     
     /***

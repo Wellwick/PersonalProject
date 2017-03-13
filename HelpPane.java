@@ -23,6 +23,7 @@ public class HelpPane extends JPanel {
 	tabbedPane.addTab("Navigation", navigation());
 	tabbedPane.addTab("Making a Network", networking());
 	tabbedPane.addTab("Performing calculations", calculate());
+	tabbedPane.addTab("Console usage", console());
 	
 	add(tabbedPane);
 	
@@ -154,6 +155,37 @@ public class HelpPane extends JPanel {
 		style
 	    );
 	    textPane.insertIcon(new ImageIcon("images/CalcCondProb.png"));
+	} catch (BadLocationException e) { System.out.println("Unable to construct the help page"); }
+	textPane.setEditable(false);
+	panel.setPreferredSize(new Dimension(390, 450));
+	textPane.setPreferredSize(new Dimension(390, 450));
+	panel.add(textPane);
+	return panel;
+    }
+    
+    //how to use the console to do things
+    private JComponent console() {
+	JPanel panel = new JPanel(false); //doesn't need double buffering!
+	JTextPane textPane = new JTextPane();
+	StyledDocument doc = (StyledDocument) textPane.getDocument();
+	
+	Style style = doc.addStyle("Info", null);
+	try {
+	    doc.insertString(doc.getLength(),
+		"It is possible to use the console to create logical fallacies if that method is preferred\n" +
+		"The command 'help' can be input at any time for information on commands\n" +
+		"New Event (no prior probability):   ne \"<EVENT NAME>\" <X> <Y>\n" + 
+		"New Event (with prior probability): nep \"<EVENT NAME>\" <PROBABILITY> <X> <Y>\n" + 
+		"New Conditional Probability:        ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>\n" + 
+		"Show all probabilities known:       list\n" +
+		"Calculate probability for event:    get \"<EVENT>\"\n" +
+		"Save Network:                       save \"<FILENAME>\"\n" +
+		"Load Network:                       load \"<FILENAME>\"\n" +
+		"Quit Program:                       exit\n" +
+		"Fallacies allow you to access the library of logical fallacies packaged with the program.\n" +
+		"Click on one and follow the steps to learn about a logical fallacy.\n",
+		style
+	    );
 	} catch (BadLocationException e) { System.out.println("Unable to construct the help page"); }
 	textPane.setEditable(false);
 	panel.setPreferredSize(new Dimension(390, 450));
