@@ -22,6 +22,8 @@ public class HelpPane extends JPanel {
 	tabbedPane.addTab("Bayesian Logic", bayesRule());
 	tabbedPane.addTab("Navigation", navigation());
 	tabbedPane.addTab("Making a Network", networking());
+	tabbedPane.addTab("Performing calculations", calculate());
+	
 	add(tabbedPane);
 	
 	
@@ -127,9 +129,36 @@ public class HelpPane extends JPanel {
 	textPane.setEditable(false);
 	panel.setPreferredSize(new Dimension(390, 450));
 	textPane.setPreferredSize(new Dimension(390, 450));
-	JScrollPane scroll = new JScrollPane(textPane);
-	panel.add(scroll, BorderLayout.CENTER);
+	panel.add(textPane);
 	return panel;
     }
     
+    //show how to make calculations in a network
+    private JComponent calculate() {
+	JPanel panel = new JPanel(false); //doesn't need double buffering!
+	JTextPane textPane = new JTextPane();
+	StyledDocument doc = (StyledDocument) textPane.getDocument();
+	
+	Style style = doc.addStyle("Info", null);
+	try {
+	    doc.insertString(doc.getLength(),
+		"To attempt a prior probability calculation for an event, simply click on it and select 'Attempt Calculation'.\n",
+		style
+            );
+	    textPane.insertIcon(new ImageIcon("images/CalcProb.png"));
+	    doc.insertString(doc.getLength(),
+		"\n" +
+		"To attempt calculation of conditional probabilities, select an event. " +
+		"Next hold CTRL+C and select the second event. If it is possible to calculate the probability between " +
+		"these events, new probabilities will be generated.\n",
+		style
+	    );
+	    textPane.insertIcon(new ImageIcon("images/CalcCondProb.png"));
+	} catch (BadLocationException e) { System.out.println("Unable to construct the help page"); }
+	textPane.setEditable(false);
+	panel.setPreferredSize(new Dimension(390, 450));
+	textPane.setPreferredSize(new Dimension(390, 450));
+	panel.add(textPane);
+	return panel;
+    }
 }
