@@ -504,10 +504,50 @@ public class Network implements ActionListener {
 	addEvent(giantYellowBear);
 	giantYellowBear.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
-	
-	JOptionPane.showMessageDialog(dp, "", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "", "Chained Condition", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear", "Chained Condition 1", JOptionPane.PLAIN_MESSAGE);
+	Event bearZone = new Event("Bear Zone", 1.0f, 10, 100);
+	addEvent(bearZone);
+	bearZone.setSelected(true);
+	giantYellowBear.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Firstly let's suppose you live in an area with bears", "Chained Condition 2", JOptionPane.PLAIN_MESSAGE);
+	Event meetBear = new Event("Meet Bear", 320, 100);
+	addEvent(meetBear);
+	addConditionalProbability(meetBear.getName(), bearZone.getName(), 0.5f);
+	addConditionalProbability(meetBear.getName(), bearZone.not().getName(), 0.001f);
+	meetBear.setSelected(true);
+	bearZone.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Next we need to include the probability of encountering a bear tomorrow", "Chained Condition 3", JOptionPane.PLAIN_MESSAGE);
+	Event hungry = new Event("Hungry", 600, 100);
+	addEvent(hungry);
+	addConditionalProbability(hungry.getName(), meetBear.getName(), 0.4f);
+	addConditionalProbability(hungry.getName(), meetBear.not().getName(), 0.0f);
+	hungry.setSelected(true);
+	meetBear.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "The bear would have to be hungry too", "Chained Condition 4", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Let's assume if the bear is hungry it is guaranteed to catch and eat you", "Chained Condition 5", JOptionPane.PLAIN_MESSAGE);
+	Event giant = new Event("Giant", 850, 100);
+	addEvent(giant);
+	addConditionalProbability(giant.getName(), hungry.getName(), 0.1f);
+	addConditionalProbability(giant.getName(), hungry.not().getName(), 0.0f);
+	giant.setSelected(true);
+	hungry.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "The liklihood of a given bear being giant is quite low, so the conditional probability is also low", "Chained Condition 6", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(giantYellowBear.getName(), giant.getName(), 0.01f);
+	addConditionalProbability(giantYellowBear.getName(), giant.not().getName(), 0.0f);
+	giantYellowBear.setSelected(true);
+	giant.setSelected(false);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "It is also very rare to find a yellow bear", "Chained Condition 7", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Now that the conditions have been chained together it is possible to calculate the probability of this event", "Chained Condition 8", JOptionPane.PLAIN_MESSAGE);
+	findProbability(giantYellowBear.getName());
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "From this we can see the liklihood is very low, around 0.02%", "Chained Condition 9", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "When looking at an outcome, make sure to consider how many conditional events must occur and what the likelihood is between each", "Chained Condition 10", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Chained conditions are often considered much more likely than they are because having connecting events makes things sound more plausible", "Chained Condition 11", JOptionPane.PLAIN_MESSAGE);
 	
     }
     
@@ -531,8 +571,8 @@ public class Network implements ActionListener {
 		case "help": //lists the commands for the client
 		    System.out.println("These are the various commands for creating Bayesian Networks");
 		    System.out.println();
-		    System.out.println("New Event (no prior probability):   ne \"<EVENT NAME>\"");
-		    System.out.println("New Event (with prior probability): nep \"<EVENT NAME>\" <PROBABILITY>");
+		    System.out.println("New Event (no prior probability):   ne \"<EVENT NAME>\" <X> <Y>");
+		    System.out.println("New Event (with prior probability): nep \"<EVENT NAME>\" <PROBABILITY> <X> <Y>");
 		    System.out.println("New Conditional Probability:        ncp \"<EVENT>\"|\"<COND EVENT>\" <PROB>");
 		    System.out.println("Show all probabilities known:       list");
 		    System.out.println("Calculate probability for event:    get \"<EVENT>\"");
