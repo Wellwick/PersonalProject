@@ -40,16 +40,19 @@ public class Network implements ActionListener {
     HashMap<Event, LinkedList<Prob>> probabilities;
     DrawPanel dp;
     JFrame frame;
+    HashMap<String, Thread> fallacy;
     
     public Network() {
 	//means we are started with a empty network
 	probabilities = new HashMap<Event, LinkedList<Prob>>();
 	makeGUI();
+	fallacy = null;
 	frame.setContentPane(getContentPane());
     }
 
     public Network(String filename) {
 	makeGUI();
+	fallacy = null;
 	load(filename);
     }
     
@@ -71,10 +74,10 @@ public class Network implements ActionListener {
 	    //let's create a network for demonstration reasons
 	    Network net = new Network("DEFAULT.bys");
 	    net.showConnections();
-	    net.findProbability("D");
+	    //net.findProbability("D");
 	    //net.findProbability("G");
-	    net.findProbability("E");
-	    net.findProbability("!E", "C");
+	    //net.findProbability("E");
+	    //net.findProbability("!E", "C");
 	    net.scanUserInput();
 	}
     }
@@ -255,6 +258,26 @@ public class Network implements ActionListener {
 	}
     }
     
+    //executes the next step in the fallacy
+    private void stepFallacy() {
+	if (fallacy == null || fallacy.size() == 0) {
+	    fallacy = null;
+	    dp.println("");
+	    return;
+	} else {
+	    //produce the entry set and execute the next step
+	    Map.Entry<String, Thread> nextStep = fallacy.entrySet().iterator().next();
+	    fallacy.remove(nextStep.getKey()); //removes this step!
+	    if (nextStep.getValue() != null) {
+		nextStep.getValue().run();
+	    }
+	    dp.println(nextStep.getKey());
+	    if (fallacy.size() == 0) {
+		fallacy = null;
+	    }
+	} 
+    }
+    
     /***
 	BELOW ARE THE IMPLEMENTED FALLACIES IN THE PROGRAM
 	ADDITIONAL ONES CAN BE ADDED
@@ -264,37 +287,77 @@ public class Network implements ActionListener {
     private void baseRateFallacy() {
 	//empty the network
 	load(null);
-	JOptionPane.showMessageDialog(dp, "The base rate fallacy occurs when the mind focuses heavily on a specific scenario, without taking into account the base rate information", "Base Rate Fallacy", JOptionPane.PLAIN_MESSAGE);
-	Event disease = new Event("Disease", 0.001f, 60, 50);
-	disease.setSelected(true);
-	addEvent(disease);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Here is a disease with a prior probability of 0.1%", "Base Rate Fallacy 1", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "There is a test which can be conducted for this disease", "Base Rate Fallacy 2", JOptionPane.PLAIN_MESSAGE);
-	Event positiveResult = new Event("Positive", 60, 350);
-	positiveResult.setSelected(true);
-	disease.setSelected(false);
-	addEvent(positiveResult);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "This event represents the occurence of a positive test result", "Base Rate Fallacy 3", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "When the disease is present, the test returns a positive result 100% of the time", "Base Rate Fallacy 4", JOptionPane.PLAIN_MESSAGE);
-	addConditionalProbability(positiveResult.getName(), disease.getName(), 1.0f);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "This can be represented with the conditional probability P(Positive|Disease) = 1", "Base Rate Fallacy 5", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This test can produce a false positive however", "Base Rate Fallacy 6", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "5% of the time the disease isn't present, a positive result occurs anyway", "Base Rate Fallacy 7", JOptionPane.PLAIN_MESSAGE);
-	addConditionalProbability(positiveResult.getName(), disease.not().getName(), 0.05f);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Now, say that you take this test and get a positive test result", "Base Rate Fallacy 8", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Although the probability of having the disease may seem high, the base rate must be taken into account", "Base Rate Fallacy 9", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "Bayes rule can be used to calculate P(Disease|Positive) which is the true likelihood of having the disease", "Base Rate Fallacy 10", JOptionPane.PLAIN_MESSAGE);
-	findProbability(positiveResult.getName(), disease.getName());
-	positiveResult.setSelected(false);
-	disease.setSelected(true);
-	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "From this calculation, it is possible to see that the probability of having the disease is only ~2%", "Base Rate Fallacy 11", JOptionPane.PLAIN_MESSAGE);
-	JOptionPane.showMessageDialog(dp, "This is an example of using the base rate correctly, since prior probability is taken into account equally with conditional probability", "Base Rate Fallacy 12", JOptionPane.PLAIN_MESSAGE);
-	
+	HashMap<String, Thread> steps = new HashMap<String, Thread>();
+	String s = "The base rate fallacy occurs when the mind focuses heavily on a specific scenario, without taking into account the base rate information";
+	steps.put(s, null);
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event disease = new Event("Disease", 0.001f, 60, 50);
+		disease.setSelected(true);
+		addEvent(disease);
+		dp.updateUI();
+	    }
+	});
+	s = "Here is a disease with a prior probability of 0.1%";
+	steps.put(s, r);
+	s = "There is a test which can be conducted for this disease";
+	steps.put(s, null);
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event positiveResult = new Event("Positive", 60, 350);
+		positiveResult.setSelected(true);
+		findEvent("Disease").setSelected(false);
+		addEvent(positiveResult);
+		dp.updateUI();
+	    }
+	});
+	s = "This event represents the occurence of a positive test result";
+	steps.put(s, r);
+	s = "When the disease is present, the test returns a positive result 100% of the time";
+	steps.put(s, null);
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Positive", "Disease", 1.0f);
+		dp.updateUI();
+	    }
+	});
+	s = "This can be represented with the conditional probability P(Positive|Disease) = 1";
+	steps.put(s, r);
+	s = "This test can produce a false positive however";
+	steps.put(s, null);
+	s = "5% of the time the disease isn't present, a positive result occurs anyway";
+	steps.put(s, null);
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Positive", "!Disease", 0.05f);
+		dp.updateUI();
+	    }
+	});
+	s = "Now, say that you take this test and get a positive test result";
+	steps.put(s, r);
+	s = "Although the probability of having the disease may seem high, the base rate must be taken into account";
+	steps.put(s, null);
+	s = "Bayes rule can be used to calculate P(Disease|Positive) which is the true likelihood of having the disease";
+	steps.put(s, null);
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findProbability("Positive", "Disease");
+		findEvent("Positive").setSelected(false);
+		findEvent("Disease").setSelected(true);
+		dp.updateUI();
+	    }
+	});
+	s = "From this calculation, it is possible to see that the probability of having the disease is only ~2%";
+	steps.put(s, r);
+	s = "This is an example of using the base rate correctly, since prior probability is taken into account equally with conditional probability";
+	steps.put(s, null);
+	fallacy = steps;
+	stepFallacy();
     }
     
     private void conjunctionFallacy() {
@@ -1220,6 +1283,7 @@ public class Network implements ActionListener {
 	boolean calcConditionals = false;
 	boolean addingItem = false;
 	JButton calcButton = null;
+	String fallacyLine = "";
 	
 	public DrawPanel() {
 	    super();
@@ -1282,6 +1346,11 @@ public class Network implements ActionListener {
 		super.remove(calcButton);
 	    calcButton = null;
 	    super.updateUI();
+	}
+	
+	public void println(String words) {
+	    fallacyLine = words;
+	    updateUI();
 	}
 	
 	//override the paint method
@@ -1357,11 +1426,17 @@ public class Network implements ActionListener {
 		}
 		
 	    }
+	    if (fallacy != null)
+		g2.drawString(fallacyLine, 10, 680);
 	    
 	}
 	
 	
 	public void mouseClicked(MouseEvent e) {
+	    if (fallacy != null) {
+		stepFallacy();
+		return;
+	    }
 	    if (calcButton != null) super.remove(calcButton);
 	    if (addingItem) return;
 	    if (!calcConditionals && !shiftDown)
