@@ -153,6 +153,12 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
+	menuItem = new JMenuItem("False Dilemma");
+	menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { falseDilemma(); }
+	});
+	fallacies.add(menuItem);
+	
 	return menuBar;
     }
     
@@ -287,7 +293,7 @@ public class Network implements ActionListener {
 	addEvent(bank);
 	dp.updateUI();
 	JOptionPane.showMessageDialog(dp, "What is more likely: Bob works at a bank-", "Conjunction Fallacy 2", JOptionPane.PLAIN_MESSAGE);
-	Event paintsAndBank = new Event("Paints&Bank", 650, 100);
+	Event paintsAndBank = new Event("Paints∩Bank", 650, 100);
 	addEvent(paintsAndBank);
 	paintsAndBank.setSelected(true);
 	bank.setSelected(false);
@@ -312,11 +318,11 @@ public class Network implements ActionListener {
 	addConditionalProbability(paintsAndBank.getName(), paints.not().getName(), 0.0f);
 	paintsAndBank.setSelected(true);
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "Since working at a bank and painting are independent events, P(Paints&Bank|Paints) = P(Bank)", "Conjunction Fallacy 8", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Since working at a bank and painting are independent events, P(Paints∩Bank|Paints) = P(Bank)", "Conjunction Fallacy 8", JOptionPane.PLAIN_MESSAGE);
 	JOptionPane.showMessageDialog(dp, "This is because the conjunction of independent events P(A∩B) = P(A) x P(B)", "Conjunction Fallacy 9", JOptionPane.PLAIN_MESSAGE);
 	findProbability(paintsAndBank.getName());
 	dp.updateUI();
-	JOptionPane.showMessageDialog(dp, "After performing this calculation, P(Paints&Bank) = 0.225 which as expected is less than the probability of P(B) = 0.3", "Conjunction Fallacy 10", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "After performing this calculation, P(Paints∩Bank) = 0.225 which as expected is less than the probability of P(B) = 0.3", "Conjunction Fallacy 10", JOptionPane.PLAIN_MESSAGE);
 	bank.setSelected(false);
 	paints.setSelected(false);
 	addConditionalProbability(paintsAndBank.getName(), bank.getName(), paints.getProb());
@@ -351,6 +357,65 @@ public class Network implements ActionListener {
 	JOptionPane.showMessageDialog(dp, "This example demonstrates how the logical contrapositive can be calculated but also how probabilities can not be simply reversed", "Affirming the Consequent 6", JOptionPane.PLAIN_MESSAGE);
 	//JOptionPane.showMessageDialog(dp, "", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
     }
+    
+    private void falseDilemma() {
+	load(null);
+	JOptionPane.showMessageDialog(dp, "False Dilemma is when only two options are presented when there are actually more", "False Dilemma", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "Suppose you are given the choice between a red pill and a blue pill", "False Dilemma 1", JOptionPane.PLAIN_MESSAGE);
+	Event redPill = new Event("Red", 800, 50);
+	Event bluePill = new Event("Blue", 800, 250);
+	addEvent(redPill);
+	addEvent(bluePill);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "The appearance of this situation is that there is only a 50/50 choice", "False Dilemma 2", JOptionPane.PLAIN_MESSAGE);
+	Event redOrBlue = new Event("Red∪Blue", 400, 150);
+	redOrBlue.setSelected(true);
+	addEvent(redOrBlue);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "It is possible to represent these events together with a union operation", "False Dilemma 3", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "However this does not allow us to discern the likelihood of any of the events at this point. More information is needed!", "False Dilemma 4", JOptionPane.PLAIN_MESSAGE);
+	redOrBlue.setSelected(false);
+	bluePill.setSelected(true);
+	redPill.setSelected(true);
+	addConditionalProbability(redPill.getName(), redOrBlue.getName(), 0.5f);
+	addConditionalProbability(bluePill.getName(), redOrBlue.getName(), 0.5f);
+	addConditionalProbability(redPill.getName(), redOrBlue.not().getName(), 0.0f);
+	addConditionalProbability(bluePill.getName(), redOrBlue.not().getName(), 0.0f);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Defining these conditional probabilities will allow us to make calculations at a later point", "False Dilemma 5", JOptionPane.PLAIN_MESSAGE);
+	Event noPill = new Event("No Pill", 800, 600);
+	bluePill.setSelected(false);
+	redPill.setSelected(false);
+	addEvent(noPill);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Suppose we have some universal information that some people refuse to take the pills", "False Dilemma 6", JOptionPane.PLAIN_MESSAGE);
+	Event pillOrNot = new Event("Pill∪!Pill", 1.0f, 10, 350);
+	addEvent(pillOrNot);
+	pillOrNot.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "This could also be represented with another union operation", "False Dilemma 7", JOptionPane.PLAIN_MESSAGE);
+	addConditionalProbability(redOrBlue.getName(), pillOrNot.getName(), 0.8f);
+	addConditionalProbability(noPill.getName(), pillOrNot.getName(), 0.2f);
+	addConditionalProbability(redOrBlue.getName(), pillOrNot.not().getName(), 0.0f);
+	addConditionalProbability(noPill.getName(), pillOrNot.not().getName(), 0.0f);
+	redOrBlue.setSelected(true);
+	noPill.setSelected(true);
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "With access to this information it is possible to perform calculations on the liklihood on various events", "False Dilemma 8", JOptionPane.PLAIN_MESSAGE);
+	noPill.setSelected(false);
+	pillOrNot.setSelected(false);
+	bluePill.setSelected(true);
+	redPill.setSelected(true);
+	findProbability(redPill.getName());
+	findProbability(bluePill.getName());
+	dp.updateUI();
+	JOptionPane.showMessageDialog(dp, "Through exploring the probability space it has been discovered the original presented options were not the only ones", "False Dilemma 9", JOptionPane.PLAIN_MESSAGE);
+	JOptionPane.showMessageDialog(dp, "This is a demonstration of how the False Dilemma problem can be avoided through considering if the choices presented cover the universal probability space", "False Dilemma 10", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    /***
+	END OF LOGICAL FALLACIES
+    ***/
     
     //method to handle reading of user requests
     private void scanUserInput() {
