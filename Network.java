@@ -1722,12 +1722,14 @@ public class Network implements ActionListener {
 		    //generate a new frame
 		    JFrame probFrame = new JFrame("Add new conditional probability");
 		    probFrame.setAlwaysOnTop(true);
+		    frame.setEnabled(false);
 		    //make sure addingItem is changed when the JFrame closes
 		    probFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent windowEvent) {
 			    addingItem = false;
 			    shiftDown = false;
+			    frame.setEnabled(true);
 			}
 		    });
 		    JPanel probPanel = new JPanel();
@@ -1840,12 +1842,14 @@ public class Network implements ActionListener {
 		//generate a new frame
 		JFrame eventFrame = new JFrame("Add new event");
 		eventFrame.setAlwaysOnTop(true);
+		frame.setEnabled(false);
 		//make sure addingItem is changed when the JFrame closes
 		eventFrame.addWindowListener(new WindowAdapter() {
 		    @Override
 		    public void windowClosing(WindowEvent windowEvent) {
 			addingItem = false;
 			shiftDown = false;
+			frame.setEnabled(true);
 		    }
 		});
 		
