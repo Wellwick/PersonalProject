@@ -91,7 +91,7 @@ public class Network implements ActionListener {
 	frame.setJMenuBar(getMenuBar());
 	frame.setContentPane(getContentPane());
 
-	frame.setSize(1280, 720);
+	frame.setSize(1280, 750);
 	frame.setMinimumSize(new Dimension(400, 300));
 	frame.setVisible(true);
     }
@@ -221,6 +221,7 @@ public class Network implements ActionListener {
 	case "New Network":
 	    //make a new network
 	    System.out.println("Making a new network");
+	    fallacy = null; //kill any fallacies in process!
 	    load(null);
 	    break;
 	case "Load":
@@ -234,8 +235,10 @@ public class Network implements ActionListener {
 	    //fd.dispatchEvent(new WindowEvent(fd, WindowEvent.WINDOW_CLOSING));
 	    if (filename == null)
 		System.out.println("Load was cancelled");
-	    else
+	    else {
+		fallacy = null; //kill any fallacies in process!
 		load(filename);
+	    }
 	    break;
 	case "Save":
 	    //load a previous network
@@ -490,7 +493,7 @@ public class Network implements ActionListener {
 	});
 	s = "Suppose that whenever it has been raining the ground is wet and currently the ground is wet";
 	fallacy.add(new AbstractMap.SimpleEntry(s, r));
-	s = "Since all that is visible in this probability space is the raining event, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account";
+	s = "With only the raining event visible, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account";
 	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	r = new Thread(new Runnable() {
 	    @Override
@@ -1664,6 +1667,7 @@ public class Network implements ActionListener {
 		
 	    }
 	    g2.setPaint(Color.BLACK);
+	    g.setFont(new Font("TimesRoman", Font.PLAIN, 15)); 
 	    if (fallacy != null)
 		g2.drawString(fallacyLine, 10, 680);
 	    
@@ -1798,7 +1802,7 @@ public class Network implements ActionListener {
 				    if (probability < 0 || probability > 1) {
                                         JOptionPane.showMessageDialog(null, "Probability must lie between 0-1");
 				    } else {
-                                        addConditionalProbability(eventName, condName, probability);
+                                        if (fallacy == null) addConditionalProbability(eventName, condName, probability);
 				    }
 				}
 				removeConditionalProb(pA);
@@ -1807,7 +1811,7 @@ public class Network implements ActionListener {
 				    if (probability < 0 || probability > 1) {
                                         JOptionPane.showMessageDialog(null, "Probability must lie between 0-1");
 				    } else {
-                                        addConditionalProbability(eventName, condNotName, probability);
+                                        if (fallacy == null) addConditionalProbability(eventName, condNotName, probability);
                                     }
 				}
 				removeConditionalProb(pB);
@@ -1882,7 +1886,7 @@ public class Network implements ActionListener {
 				    JOptionPane.showMessageDialog(null, "Probability must fall within 0-1");
 				else {
 				    //time to add the event
-				    addEvent(new Event(eventName.getText(), prob, e.getX()-50, e.getY()-30));
+				    if (fallacy == null) addEvent(new Event(eventName.getText(), prob, e.getX()-50, e.getY()-30));
 				    dp.updateUI();
 				    eventFrame.dispatchEvent(new WindowEvent(eventFrame, WindowEvent.WINDOW_CLOSING));
 				}
@@ -1891,7 +1895,7 @@ public class Network implements ActionListener {
 			    } 
 			} else {
 			    //add a non probability event
-			    addEvent(new Event(eventName.getText(), e.getX()-50, e.getY()-30));
+			    if (fallacy == null) addEvent(new Event(eventName.getText(), e.getX()-50, e.getY()-30));
 			    dp.updateUI();
 			    eventFrame.dispatchEvent(new WindowEvent(eventFrame, WindowEvent.WINDOW_CLOSING));
 			} 
