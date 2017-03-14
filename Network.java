@@ -151,7 +151,7 @@ public class Network implements ActionListener {
 	});
 	fallacies.add(menuItem);
 	
-	menuItem = new JMenuItem("Affirming the Consequenct");
+	menuItem = new JMenuItem("Affirming the Consequent");
 	menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { affirmingTheConsequence(); }
 	});
@@ -267,14 +267,12 @@ public class Network implements ActionListener {
 	    return;
 	} else {
 	    //produce the next step, removing it from the list
-	    Map.Entry<String, Thread> nextStep = fallacy.poll();
+	    AbstractMap.SimpleEntry<String, Thread> nextStep = fallacy.poll();
 	    if (nextStep.getValue() != null) {
 		nextStep.getValue().run();
 	    }
+	    //make sure the event isn't null on the redraw
 	    dp.println(nextStep.getKey());
-	    if (fallacy.size() == 0) {
-		fallacy = null;
-	    }
 	} 
     }
     
@@ -475,203 +473,379 @@ public class Network implements ActionListener {
     
     private void affirmingTheConsequence() {
 	load(null);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "Affirming the consequent occurs when seeing the effect of a possible cause produces the assumption of that specific cause occurring";
-	Event rain = new Event("Rain", 300, 10);
-	Event wet = new Event("Wet", 1.0f, 300, 260);
-	addEvent(rain);
-	addEvent(wet);
-	wet.setSelected(true);
-	addConditionalProbability(wet.getName(), rain.getName(), 1.0f);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event rain = new Event("Rain", 300, 10);
+		Event wet = new Event("Wet", 1.0f, 300, 260);
+		addEvent(rain);
+		addEvent(wet);
+		wet.setSelected(true);
+		addConditionalProbability(wet.getName(), rain.getName(), 1.0f);
+		dp.updateUI();
+	    }
+	});
 	s = "Suppose that whenever it has been raining the ground is wet and currently the ground is wet";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Since all that is visible in this probability space is the raining event, it seems reasonable to believe that it has been raining recently, however there are other scenarios to take into account";
-	Event washingCar = new Event("Washing Car", 10, 260);
-	addEvent(washingCar);
-	addConditionalProbability(wet.getName(), washingCar.getName(), 1.0f);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event washingCar = new Event("Washing Car", 10, 260);
+		addEvent(washingCar);
+		addConditionalProbability("Wet", washingCar.getName(), 1.0f);
+		dp.updateUI();
+	    }
+	});
 	s = "Rain is not the only way that the ground can get wet, for example a car may have been washed recently";
-	addConditionalProbability(rain.getName(), wet.not().getName(), 0.0f);
-	wet.setSelected(false);
-	rain.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Rain", "!Wet", 0.0f);
+		findEvent("Wet").setSelected(false);
+		findEvent("Rain").setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "The only valid calculation that can be made with this is to calculate the contrapositive P(Rain|!Wet) = 0.0f";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This is because if there is no wet ground, there is no probability space where rain has occured";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "This example demonstrates how the logical contrapositive can be calculated but also how probabilities can not be simply reversed";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	stepFallacy();
 	//s = "", "Affirming the Consequent", JOptionPane.PLAIN_MESSAGE);
     }
     
     private void falseDilemma() {
 	load(null);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "False Dilemma is when only two options are presented when there are actually more";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "Suppose you are given the choice between a red pill and a blue pill";
-	Event redPill = new Event("Red", 800, 50);
-	Event bluePill = new Event("Blue", 800, 250);
-	addEvent(redPill);
-	addEvent(bluePill);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event redPill = new Event("Red", 800, 50);
+		Event bluePill = new Event("Blue", 800, 250);
+		addEvent(redPill);
+		addEvent(bluePill);
+		dp.updateUI();
+	    }
+	});
 	s = "The appearance of this situation is that there is only a 50/50 choice";
-	Event redOrBlue = new Event("Red∪Blue", 400, 150);
-	redOrBlue.setSelected(true);
-	addEvent(redOrBlue);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event redOrBlue = new Event("Red∪Blue", 400, 150);
+		redOrBlue.setSelected(true);
+		addEvent(redOrBlue);
+		dp.updateUI();
+	    }
+	});
 	s = "It is possible to represent these events together with a union operation";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "However this does not allow us to discern the likelihood of any of the events at this point. More information is needed!";
-	redOrBlue.setSelected(false);
-	bluePill.setSelected(true);
-	redPill.setSelected(true);
-	addConditionalProbability(redPill.getName(), redOrBlue.getName(), 0.5f);
-	addConditionalProbability(bluePill.getName(), redOrBlue.getName(), 0.5f);
-	addConditionalProbability(redPill.getName(), redOrBlue.not().getName(), 0.0f);
-	addConditionalProbability(bluePill.getName(), redOrBlue.not().getName(), 0.0f);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findEvent("Red∪Blue").setSelected(false);
+		findEvent("Blue").setSelected(true);
+		findEvent("Red").setSelected(true);
+		addConditionalProbability("Red", "Red∪Blue", 0.5f);
+		addConditionalProbability("Blue", "Red∪Blue", 0.5f);
+		addConditionalProbability("Red", "!Red∪Blue", 0.0f);
+		addConditionalProbability("Blue", "!Red∪Blue", 0.0f);
+		dp.updateUI();
+	    }
+	});
 	s = "Defining these conditional probabilities will allow us to make calculations at a later point";
-	Event noPill = new Event("No Pill", 800, 600);
-	bluePill.setSelected(false);
-	redPill.setSelected(false);
-	addEvent(noPill);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event noPill = new Event("No Pill", 800, 600);
+		findEvent("Blue").setSelected(false);
+		findEvent("Red").setSelected(false);
+		addEvent(noPill);
+		dp.updateUI();
+	    }
+	});
 	s = "Suppose we have some universal information that some people refuse to take the pills";
-	Event pillOrNot = new Event("Pill∪!Pill", 1.0f, 10, 350);
-	addEvent(pillOrNot);
-	pillOrNot.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event pillOrNot = new Event("Pill∪!Pill", 1.0f, 10, 350);
+		addEvent(pillOrNot);
+		pillOrNot.setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "This could also be represented with another union operation";
-	addConditionalProbability(redOrBlue.getName(), pillOrNot.getName(), 0.8f);
-	addConditionalProbability(noPill.getName(), pillOrNot.getName(), 0.2f);
-	addConditionalProbability(redOrBlue.getName(), pillOrNot.not().getName(), 0.0f);
-	addConditionalProbability(noPill.getName(), pillOrNot.not().getName(), 0.0f);
-	redOrBlue.setSelected(true);
-	noPill.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Red∪Blue", "Pill∪!Pill", 0.8f);
+		addConditionalProbability("No Pill", "Pill∪!Pill", 0.2f);
+		addConditionalProbability("Red∪Blue", "!Pill∪!Pill", 0.0f);
+		addConditionalProbability("No Pill", "!Pill∪!Pill", 0.0f);
+		findEvent("Red∪Blue").setSelected(true);
+		findEvent("No Pill").setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "With access to this information it is possible to perform calculations on the liklihood on various events";
-	noPill.setSelected(false);
-	pillOrNot.setSelected(false);
-	bluePill.setSelected(true);
-	redPill.setSelected(true);
-	findProbability(redPill.getName());
-	findProbability(bluePill.getName());
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findEvent("No Pill").setSelected(false);
+		findEvent("Pill∪!Pill").setSelected(false);
+		findEvent("Blue").setSelected(true);
+		findEvent("Red").setSelected(true);
+		findProbability("Red");
+		findProbability("Blue");
+		dp.updateUI();
+	    }
+	});
 	s = "Through exploring the probability space it has been discovered the original presented options were not the only ones";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This is a demonstration of how the False Dilemma problem can be avoided through considering if the choices presented cover the universal probability space";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	stepFallacy();
     }
     
     private void falseCause() {
 	load(null);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "False Cause is when an incorrect assertion is made that one event causes another. Sometimes both events may be caused by another event entirely.";
-	Event sleep = new Event("Sleep", 400, 200);
-	Event sunset = new Event("Sunset", 700, 200);
-	addEvent(sleep);
-	addEvent(sunset);
-	addConditionalProbability(sunset.getName(), sleep.getName(), 1.0f);
-	sunset.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event sleep = new Event("Sleep", 400, 200);
+		Event sunset = new Event("Sunset", 700, 200);
+		addEvent(sleep);
+		addEvent(sunset);
+		addConditionalProbability(sunset.getName(), sleep.getName(), 1.0f);
+		sunset.setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "Take, for example, going to sleep causing the sun to go down";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Although this is illogical it may be true that going to sleep and sunset coincide";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "This is where false causes can be identified";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "The best method for avoiding false causes is to identify possible other causes (or experimentally proving the case false)";
-	load(null);
-	Event dayEnd = new Event("Day's End", 300, 200);
-	sunset = new Event("Sunset", 700, 100);
-	sunset.setSelected(true);
-	addEvent(sunset);
-	addEvent(dayEnd);
-	addConditionalProbability(sunset.getName(), dayEnd.getName(), 1.0f);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		load(null);
+		Event dayEnd = new Event("Day's End", 300, 200);
+		Event sunset = new Event("Sunset", 700, 100);
+		sunset.setSelected(true);
+		addEvent(sunset);
+		addEvent(dayEnd);
+		addConditionalProbability(sunset.getName(), dayEnd.getName(), 1.0f);
+		dp.updateUI();
+	    }
+	});
 	s = "Suppose for example we consider it being the end of the day causing the sun to set instead";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This makes more sense and also is a possible cause for going to sleep";
-	sleep = new Event("Sleep", 700, 300);
-	addEvent(sleep);
-	addConditionalProbability(sleep.getName(), dayEnd.getName(), 1.0f);
-	sleep.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event sleep = new Event("Sleep", 700, 300);
+		addEvent(sleep);
+		addConditionalProbability(sleep.getName(), "Day's End", 1.0f);
+		sleep.setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "This network now demonstrates that 'Sleep' and 'Sunset' are actually conditionally independent events";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Spotting a false cause is not always easy, usually requiring experiments to be undertaken to dis/prove the accuracy of the causality";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	stepFallacy();
     }
     
     private void beggingTheQuestion() {
 	load(null);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "Begging the Question is a type of circular reasoning in which the cause of an event is not defined in a clear/linear way, instead relating to itself in some way";
-	Event wellKnown = new Event("Known", 400, 100);
-	Event popular = new Event("Popular", 400, 500);
-	addEvent(wellKnown);
-	addEvent(popular);
-	addConditionalProbability(popular.getName(), wellKnown.getName(), 1.0f);
-	addConditionalProbability(popular.getName(), wellKnown.not().getName(), 0.0f);
-	popular.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event wellKnown = new Event("Known", 400, 100);
+		Event popular = new Event("Popular", 400, 500);
+		addEvent(wellKnown);
+		addEvent(popular);
+		addConditionalProbability(popular.getName(), wellKnown.getName(), 1.0f);
+		addConditionalProbability(popular.getName(), wellKnown.not().getName(), 0.0f);
+		popular.setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "Suppose someone makes the statement 'I am popular because everyone knows me'";
-	addConditionalProbability(wellKnown.getName(), popular.getName(), 1.0f);
-	addConditionalProbability(wellKnown.getName(), popular.not().getName(), 0.0f);
-	popular.setSelected(false);
-	wellKnown.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("Known", "Popular", 1.0f);
+		addConditionalProbability("Known", "!Popular", 0.0f);
+		findEvent("Popular").setSelected(false);
+		findEvent("Known").setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "However when you ask them why they are well known, they respond 'because I'm popular'";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "This is an example of circular logic and there is no way this information can be learned since it is derived from itself";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "Providing a seperate premise is the important thing when establishing a causal relationship";
-	Event musical = new Event("Musical", 1.0f, 100, 100);
-	addEvent(musical);
-	addConditionalProbability(wellKnown.getName(), musical.getName(), 0.7f);
-	addConditionalProbability(wellKnown.getName(), musical.not().getName(), 0.3f);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event musical = new Event("Musical", 1.0f, 100, 100);
+		addEvent(musical);
+		addConditionalProbability("Known", musical.getName(), 0.7f);
+		addConditionalProbability("Known", musical.not().getName(), 0.3f);
+		dp.updateUI();
+	    }
+	});
 	s = "An example reason of being well known may be the person being musical, which can be used for calculations within the Bayesian network";
-	findProbability(popular.getName());
-	popular.setSelected(true);
-	wellKnown.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findProbability("Popular");
+		findEvent("Popular").setSelected(true);
+		findEvent("Known").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "If circular reasoning is ever encountered, attempt to create a connection which has a seperate premise to avoid this logical fallacy";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	stepFallacy();
     }
     
     private void chainedConditions() {
 	load(null);
+	fallacy = new LinkedList<AbstractMap.SimpleEntry<String, Thread>>();
 	String s = "Similar to the Conjunction fallacy, chained conditions tend to make a story sound more plausible however this also makes the events less probable";
-	Event giantYellowBear = new Event("GYB", 1100, 100);
-	addEvent(giantYellowBear);
-	giantYellowBear.setSelected(true);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	Thread r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event giantYellowBear = new Event("GYB", 1100, 100);
+		addEvent(giantYellowBear);
+		giantYellowBear.setSelected(true);
+		dp.updateUI();
+	    }
+	});
 	s = "Suppose someone tells you that tomorrow you will be eaten by a giant yellow bear";
-	Event bearZone = new Event("Bear Zone", 1.0f, 10, 100);
-	addEvent(bearZone);
-	bearZone.setSelected(true);
-	giantYellowBear.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event bearZone = new Event("Bear Zone", 1.0f, 10, 100);
+		addEvent(bearZone);
+		bearZone.setSelected(true);
+		findEvent("GYB").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "Firstly let's suppose you live in an area with bears";
-	Event meetBear = new Event("Meet Bear", 320, 100);
-	addEvent(meetBear);
-	addConditionalProbability(meetBear.getName(), bearZone.getName(), 0.5f);
-	addConditionalProbability(meetBear.getName(), bearZone.not().getName(), 0.001f);
-	meetBear.setSelected(true);
-	bearZone.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event meetBear = new Event("Meet Bear", 320, 100);
+		addEvent(meetBear);
+		addConditionalProbability(meetBear.getName(), "Bear Zone", 0.5f);
+		addConditionalProbability(meetBear.getName(), "!Bear Zone", 0.001f);
+		meetBear.setSelected(true);
+		findEvent("Bear Zone").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "Next we need to include the probability of encountering a bear tomorrow";
-	Event hungry = new Event("Hungry", 600, 100);
-	addEvent(hungry);
-	addConditionalProbability(hungry.getName(), meetBear.getName(), 0.4f);
-	addConditionalProbability(hungry.getName(), meetBear.not().getName(), 0.0f);
-	hungry.setSelected(true);
-	meetBear.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event hungry = new Event("Hungry", 600, 100);
+		addEvent(hungry);
+		addConditionalProbability(hungry.getName(), "Meet Bear", 0.4f);
+		addConditionalProbability(hungry.getName(), "!Meet Bear", 0.0f);
+		hungry.setSelected(true);
+		findEvent("Meet Bear").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "The bear would have to be hungry too";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Let's assume if the bear is hungry it is guaranteed to catch and eat you";
-	Event giant = new Event("Giant", 850, 100);
-	addEvent(giant);
-	addConditionalProbability(giant.getName(), hungry.getName(), 0.1f);
-	addConditionalProbability(giant.getName(), hungry.not().getName(), 0.0f);
-	giant.setSelected(true);
-	hungry.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		Event giant = new Event("Giant", 850, 100);
+		addEvent(giant);
+		addConditionalProbability(giant.getName(), "Hungry", 0.1f);
+		addConditionalProbability(giant.getName(), "!Hungry", 0.0f);
+		giant.setSelected(true);
+		findEvent("Hungry").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "The liklihood of a given bear being giant is quite low, so the conditional probability is also low";
-	addConditionalProbability(giantYellowBear.getName(), giant.getName(), 0.01f);
-	addConditionalProbability(giantYellowBear.getName(), giant.not().getName(), 0.0f);
-	giantYellowBear.setSelected(true);
-	giant.setSelected(false);
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		addConditionalProbability("GYB", "Giant", 0.01f);
+		addConditionalProbability("GYB", "!Giant", 0.0f);
+		findEvent("GYB").setSelected(true);
+		findEvent("Giant").setSelected(false);
+		dp.updateUI();
+	    }
+	});
 	s = "It is also very rare to find a yellow bear";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "Now that the conditions have been chained together it is possible to calculate the probability of this event";
-	findProbability(giantYellowBear.getName());
-	dp.updateUI();
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	r = new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		findProbability("GYB");
+		dp.updateUI();
+	    }
+	});
 	s = "From this we can see the liklihood is very low, around 0.02%";
+	fallacy.add(new AbstractMap.SimpleEntry(s, r));
 	s = "When looking at an outcome, make sure to consider how many conditional events must occur and what the likelihood is between each";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
 	s = "Chained conditions are often considered much more likely than they are because having connecting events makes things sound more plausible";
+	fallacy.add(new AbstractMap.SimpleEntry(s, null));
+	stepFallacy();
     }
     
     /***
