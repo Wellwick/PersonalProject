@@ -1,2 +1,2 @@
-javac Network.javac
+javac Network.java
 java Network
